@@ -1,0 +1,9 @@
+processors=1
+align.seqs.reference=
+chimera.reference=
+classify.seqs.reference=
+classify.seqs.taxonomy=
+output.location=
+input.location=
+mothur.location=
+lookup.reference=

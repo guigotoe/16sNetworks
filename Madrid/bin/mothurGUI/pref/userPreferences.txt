@@ -1,0 +1,9 @@
+classify.seqs.reference=
+output.location=
+align.seqs.reference=
+mothur.location=./mothur/mothur
+input.location=
+classify.seqs.taxonomy=
+chimera.reference=
+processors=1
+lookup.reference=
