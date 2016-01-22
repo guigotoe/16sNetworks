@@ -1,0 +1,125 @@
+# input.files -> tabular file: name\tFwdRead_R1\tRvrsRead_R2\n
+# making contigs (requires input.files): extract seq and its quality score; create reverse
+# complement of RvsReads_R2; join in a contig the two Reads (PED)  
+# 1)alignment pair of seqs; 2) explore mismatches -> desition by quality: bigger than 25
+# is consider real if one position is a gap but if 2 positions have bases then one base is
+# require if have quality score 6 or more points better than the other, if is less it is set
+# the consensus base to an N.
+
+make.contigs(file=16s.files, processors=15)
+summary.seqs(fasta=16s.trim.contigs.fasta)
+
+# next we will eliminate ambiguios reads and suspicious longer reads (bigger than mean)
+
+screen.seqs(fasta=16s.trim.contigs.fasta, group=16s.contigs.groups, summary=16s.trim.contigs.summary, maxambig=0, maxlength=465, maxhomop=6)
+
+# get.current() -> to see the values of the current variables
+# same way: summary.seqs() or summary.seqs(fasta=current) or 
+# summary.seqs(fasta=16s.trim.contigs.good.fasta)
+
+summary.seqs()
+
+# Reducing redundance
+
+unique.seqs(fasta=current)
+
+# Reducing file size changing name of seqs
+
+count.seqs(name=current, group=current)
+summary.seqs(count=current)
+
+# aligning -> customizing the database: start 6388 end 25316
+# pcr.seqs
+
+# alignment:
+
+align.seqs(fasta=current,reference=/home/unal2/Bin/DBs/Mothur/silva.bacteria_11_2014/silva.bacteria.fasta)
+
+# make sure that everything overlaps the same region
+
+screen.seqs(fasta=current,count=current,start=6388,end=25316)
+summary.seqs(fasta=current,count=current)
+
+# Remove the overhangs at both ends. reduce the size of the file and left the usefull information
+
+filter.seqs(fasta=current,vertical=T,trump=.)
+
+# To remove more redundance created by trimming the ends, we will re-run unique.seqs:
+
+unique.seqs(fasta=current,count=current)
+
+# to further de-noising, generally favor allowing 1 difference of every 100pb of sequence;
+# take 11.4 h pre-cluster  
+# chimera took 6.2 days
+
+pre.cluster(fasta=current,count=current,diffs=4)
+chimera.uchime(fasta=current,count=current,dereplicate=t)
+
+#Output File Names: 
+#16s.trim.contigs.good.unique.good.filter.unique.precluster.uchime.pick.count_table
+#16s.trim.contigs.good.unique.good.filter.unique.precluster.uchime.chimeras
+#16s.trim.contigs.good.unique.good.filter.unique.precluster.uchime.accnos
+
+remove.seqs(fasta=16s.trim.contigs.good.unique.good.filter.unique.precluster.fasta, accnos=16s.trim.contigs.good.unique156	.good.filter.unique.precluster.uchime.accnos) 
+
+summary.seqs(fasta=16s.trim.contigs.good.unique.good.filter.unique.precluster.pick.fasta, count=16s.trim.contigs.good.unique.good.filter.unique.precluster.uchime.pick.count_table)
+
+# Remove primer amplification error
+
+classify.seqs(fasta=current, count=current, reference=/home/unal2/Bin/DBs/Mothur/trainset9_032012.pds.fasta, taxonomy=/home/unal2/Bin/DBs/Mothur/trainset9_032012.pds.tax, cutoff=80, processors=15)
+
+remove.lineage(fasta=current, count=current, taxonomy=current, taxon=Chloroplast-Mitochondria-unknown-Archaea-Eukaryota)
+
+## generating OTUs ##
+
+# traditional form - spend a lot of time; using dist.seqs aprox 4 days and 1.4 TB in space
+# Faster way with relatively good results; cluster.split
+
+dist.seqs(fasta=current, cutoff=0.10, processors=15)
+cluster(column=current, count=current)
+# Added for clustering (it seems an artifact)
+# HWI-M01987_97_000HWI-M01987_97_000000000-ABG8T_1_2105_9397_2985	1	1	1	1
+# HWI-M01987_97_000HWI-M01987_97_000000000-ABG8T_1_2105_9397_2985	Bacteria(100);"Proteobacteria"(100);Gammaproteobacteria(100);Pseudomonadales(99);Pseudomonadaceae(99);unclassified;
+
+make.shared(list=, count=current, label=0.03)
+#-0.05-0.10)
+classify.otu(list=current, count=current, taxonomy=16s.trim.contigs.good.unique.good.filter.unique.precluster.pick.pds.wang.pick.taxonomy, label=0.03)
+
+##Faster way because error label 0.03 with traditional way
+
+cluster.split(column=/media/empty/16s.trim.contigs.good.unique.good.filter.unique.precluster.pick.pick.dist, count=16s.trim.contigs.good.unique.good.filter.unique.precluster.uchime.pick.pick.count_table, taxonomy=16s.trim.contigs.good.unique.good.filter.unique.precluster.pick.pds.wang.pick.taxonomy, splitmethod=classify, taxlevel=4, cutoff=0.05, processors=15)
+
+make.shared(list=16s.trim.contigs.good.unique.good.filter.unique.precluster.pick.pick.an.unique_list.list, count=16s.trim.contigs.good.unique.good.filter.unique.precluster.uchime.pick.pick.count_table, label=0.03)
+
+classify.otu(list=current, count=current, taxonomy=current, label=0.03)
+
+
+## OTU-based analysis ##
+
+
+## phylotype based analysis ##
+
+system(mv 16s.trim.contigs.good.unique.good.filter.unique.precluster.pick.pick.an.unique_list.0.02.cons.taxonomy 16s.an.cons.taxonomy)
+
+system(mv 16s.trim.contigs.good.unique.good.filter.unique.precluster.pick.pds.wang.pick.tx.shared 16s.tx.shared)
+
+system(mv 16s.trim.contigs.good.unique.good.filter.unique.precluster.pick.pds.wang.pick.tx.shared 16s.tx.shared)
+system(mv 16s.trim.contigs.good.unique.good.filter.unique.precluster.pick.pds.wang.pick.tx.1.cons.taxonomy 16s.tx.cons.taxonomy)
+
+count.groups(shared=16s.tx.shared)
+sub.sample(shared=16s.tx.shared, size=3274991)
+
+rarefaction.single(shared=16s.tx.shared, calc=sobs, freq=1000)
+
+summary.single(shared=16s.tx.shared, calc=nseqs-coverage-sobs-invsimpson, subsample=3580635)
+
+## Beta Dviersity ##
+
+heatmap.bin(shared=16s.tx.1.subsample.shared, scale=log2, numotu=50)
+
+dist.shared(shared=16s.tx.shared, calc=thetayc-jclass, subsample=3274991)
+
+heatmap.sim(phylip=16s.tx.thetayc.1.lt.ave.dist)
+heatmap.sim(phylip=16s.tx.jclass.1.lt.ave.dist)
+venn(shared=16s.tx.1.subsample.shared, groups=s1-s2-s3)
+
