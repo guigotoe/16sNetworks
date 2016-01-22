@@ -17,12 +17,13 @@ library(reshape2)
 library(scales)
 library(ade4)
 library(RColorBrewer) 
+library(plyr)
 
 
 #* Globals *#
 script_loc = getwd()
-setwd("/Users/guillermotorres/Documents/Proyectos/Doctorado/Metagenome_16S/Metagenome/Madrid/results/")
-files.path = '/Users/guillermotorres/Documents/Proyectos/Doctorado/Metagenome_16S/Metagenome/Madrid/bin/'#
+setwd("~/Documents/Projects/Metagenome/Madrid/results/")
+files.path = '~/Documents/Projects/Metagenome/Madrid/bin/'#
 prefix <- "JP_"
 
 
@@ -147,11 +148,13 @@ head(m_wdeg[,1:5])
 qplot(x=m_wdeg$'X',y=m_wdeg[,4],data=m_wdeg,geom="line")
 qplot(x=f_wdeg$'X',y=f_wdeg[,4],data=f_wdeg,geom="line")
 
+m_wdeg[is.na(m_wdeg)] <- 0
 m_wdm <- apply(m_wdeg[2:ncol(m_wdeg)],1,mean)
 m_wdegt <- melt(m_wdeg,id.vars=c("X"))
 m_wdSE <- summarySE(m_wdegt,measurevar="value",groupvars=c("X"))
 m_wdSE$"gender" <- rep("male",NROW(m_wdSE))
 
+f_wdeg[is.na(f_wdeg)] <- 0
 f_wdm <- apply(f_wdeg[2:ncol(f_wdeg)],1,mean)
 f_wdegt <- melt(f_wdeg,id.vars=c("X"))
 f_wdSE <- summarySE(f_wdegt,measurevar="value",groupvars=c("X"))

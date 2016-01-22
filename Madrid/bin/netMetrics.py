@@ -36,11 +36,11 @@ By Guillermo G. Torres (ggtorrese@unal.edu.co)
 - IKMB - Christian-Albrechts-Universitat zu Kiel"""
 
 parser = OptionParser(usage=usage,version="%prog 1.0")
-parser.add_option("-i","--input",type="string",action="store",dest="tensor",default='OTUp_SO_males',
+parser.add_option("-i","--input",type="string",action="store",dest="tensor",default='OTUp_SO_females',
                       help="Input file. Pandas dataframe (numpy based matrix)")
-parser.add_option("-a","--atrib",type="string",action="store",dest="atrib",default='SO_males',
+parser.add_option("-a","--atrib",type="string",action="store",dest="atrib",default='SO_females',
                       help="SOsin matrix")
-parser.add_option("-o","--out",type="string",action="store",dest="out",default='OTUp_males',
+parser.add_option("-o","--out",type="string",action="store",dest="out",default='OTUp_females',
                       help="SOsin matrix")
 parser.add_option("-S", action="store_true",dest="mothur",default=True,
                       help = "True if input is '.cons.tax.summary' from mothur - default False")
@@ -60,7 +60,7 @@ def main():
     files = o.tensor.split(',')
     so_files = o.atrib.split(',')
     out = o.out.split(',')
-
+    th = 0.05
     j=0
     for i in files:
         tensor = pickle.load(open(i, 'r'))
@@ -75,14 +75,14 @@ def main():
             permut = [x for x in it.combinations(df.index.values.tolist(),2)]   # All comparisons tuples (Oi,Oj)
             m = pd.DataFrame(index=df.index.values.tolist(), columns=df.index.values.tolist()).fillna(0)  # Empty new matrix of network
             for i in permut:temp.append([i[0],i[1],df.ix[i[0],i[1]]])
-            st[k] = temp
-            print temp
             temp = pd.DataFrame(np.array(temp)).sort(2,ascending=False).reset_index().drop('index', axis=1)
-            print temp.ix[0:5,0:5]
-            print len(temp)
-            sys.exit('stop')
-            #temp.to_csv("%s_%s_best5p_net.txt"%(out[j],k),sep='\t',index=False)
             #for i in range(int(0.05*len(permut))):m.ix[temp.ix[i,][0],temp.ix[i,][1]] = float(temp.ix[i,][2])
+            rows=[]
+            for i in range(int(th*len(permut))):rows.append([temp.ix[i,][0],temp.ix[i,][1],float(temp.ix[i,][2])])
+            st[k] = rows
+            rows = pd.DataFrame(np.array(rows)).sort(2,ascending=False).reset_index().drop('index', axis=1)
+            rows.to_csv("%s_%s_best5p_net.txt"%(out[j],k),sep='\t',index=False)
+            #print m.ix[0:5,0:5]
             #m = m.add(m.transpose())
             #m.to_csv("%s_%s_best5p.txt"%(out[j],k),sep='\t')
             #ft[k] = m
