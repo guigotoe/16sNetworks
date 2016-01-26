@@ -76,19 +76,22 @@ def main():
             m = pd.DataFrame(index=df.index.values.tolist(), columns=df.index.values.tolist()).fillna(0)  # Empty new matrix of network
             for i in permut:temp.append([i[0],i[1],df.ix[i[0],i[1]]])
             temp = pd.DataFrame(np.array(temp)).sort(2,ascending=False).reset_index().drop('index', axis=1)
-            #for i in range(int(0.05*len(permut))):m.ix[temp.ix[i,][0],temp.ix[i,][1]] = float(temp.ix[i,][2])
+            ##for i in range(int(0.05*len(permut))):m.ix[temp.ix[i,][0],temp.ix[i,][1]] = float(temp.ix[i,][2])
             rows=[]
             for i in range(int(th*len(permut))):rows.append([temp.ix[i,][0],temp.ix[i,][1],float(temp.ix[i,][2])])
             st[k] = rows
             rows = pd.DataFrame(np.array(rows)).sort(2,ascending=False).reset_index().drop('index', axis=1)
-            rows.to_csv("%s_%s_best5p_net.txt"%(out[j],k),sep='\t',index=False)
-            #print m.ix[0:5,0:5]
-            #m = m.add(m.transpose())
-            #m.to_csv("%s_%s_best5p.txt"%(out[j],k),sep='\t')
-            #ft[k] = m
+            #q+=1
+            #if q == 3:
+            #    break
+            #rows.to_csv("%s_%s_best5p_net.txt"%(out[j],k),sep='\t',index=False)
+            ##print m.ix[0:5,0:5]
+            ##m = m.add(m.transpose())
+            ##m.to_csv("%s_%s_best5p.txt"%(out[j],k),sep='\t')
+            ##ft[k] = m
         nets = netmetrics(st)
-        nets.wdegree().to_csv("%s_best5p_wdegree_st.txt"%out[j],sep="\t")
-        #nets.aveclustercoef().to_csv("%s_avclustcoef.txt"%out[j],sep="\t")
+        #nets.wdegree().to_csv("%s_best5p_wdegree_st.txt"%out[j],sep="\t")
+        nets.clustercoef().to_csv("%s_best5p_clustcoef.txt"%out[j],sep="\t")
         #nets.eigvectc().to_csv("%s_eigvectc.txt"%out[j],sep="\t")
         #nets.betwcent().to_csv("%s_betwcent.txt"%out[j],sep="\t")
         #nets.aveshortest().to_csv("%s_avshortest.txt"%out[j],sep="\t")
@@ -140,15 +143,29 @@ class netmetrics():
                 id[deg.index[-1]]=k
             deg.rename(index=id,inplace=True)
         return deg
-    def aveclustercoef(self):
+    def clustercoef(self):
         '''
         It returns average cluster coeficient from each network
         '''
-        acc=pd.DataFrame(np.nan,index=self.indiv,columns=['ave_cluster_coef'])
-        for k in self.indiv:
-            G = nx.from_numpy_matrix(self.nets[k].values)
-            G.edges(data=True)
-            acc.loc[k] = nx.average_clustering(G,weight='weight')
+        if self.pd :
+            acc=pd.DataFrame(np.nan,index=self.indiv,columns=['ave_cluster_coef'])
+            for k in self.indiv:
+                G = nx.from_numpy_matrix(self.nets[k].values)
+                G.edges(data=True)
+                acc.loc[k] = nx.average_clustering(G,weight='weight')
+        else:
+            acc = pd.DataFrame()
+            id = {}
+            for k in self.nets.keys():
+                G = nx.DiGraph()
+                G.add_weighted_edges_from(self.nets[k])
+                G = G.to_undirected()
+                clustering = nx.clustering(G,weight='weight')
+                acc = acc.append(clustering,ignore_index=True)
+                id[acc.index[-1]]=k
+                print acc.ix[0:5,0:5]
+                sys.exit('stop')
+            acc.rename(index=id,inplace=True)
         return acc
     def eigvectc(self):
         '''

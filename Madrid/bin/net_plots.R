@@ -168,8 +168,8 @@ ggplot(data=wdSE,aes(X,value,color=gender))+geom_line()+geom_point()+
   ggtitle("Strength")+
   geom_errorbar(aes(ymin=value-se, ymax=value+se), width=.1)
 dev.off()
-#colnames(wdSE) <- c("WinAge","NumOTUs","aveStrength","stdDev","stdError","ConfInterv","Gender")
-#write.table(wdSE,file="Best5p_strength_Stats.txt",sep="\t",row.names=FALSE)
+colnames(wdSE) <- c("WinAge","NumOTUs","aveStrength","stdDev","stdError","ConfInterv","Gender")
+write.table(wdSE,file="Best5p_strength_Stats.txt",sep="\t",row.names=FALSE)
 
 #-------------#
 #  Closeness  #
