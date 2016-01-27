@@ -36,11 +36,11 @@ By Guillermo G. Torres (ggtorrese@unal.edu.co)
 - IKMB - Christian-Albrechts-Universitat zu Kiel"""
 
 parser = OptionParser(usage=usage,version="%prog 1.0")
-parser.add_option("-i","--input",type="string",action="store",dest="tensor",default='OTUp_SO_females',
+parser.add_option("-i","--input",type="string",action="store",dest="tensor",default='OTUp_SO_males',
                       help="Input file. Pandas dataframe (numpy based matrix)")
-parser.add_option("-a","--atrib",type="string",action="store",dest="atrib",default='SO_females',
+parser.add_option("-a","--atrib",type="string",action="store",dest="atrib",default='SO_males',
                       help="SOsin matrix")
-parser.add_option("-o","--out",type="string",action="store",dest="out",default='OTUp_females',
+parser.add_option("-o","--out",type="string",action="store",dest="out",default='OTUp_males',
                       help="SOsin matrix")
 parser.add_option("-S", action="store_true",dest="mothur",default=True,
                       help = "True if input is '.cons.tax.summary' from mothur - default False")
@@ -81,9 +81,9 @@ def main():
             for i in range(int(th*len(permut))):rows.append([temp.ix[i,][0],temp.ix[i,][1],float(temp.ix[i,][2])])
             st[k] = rows
             rows = pd.DataFrame(np.array(rows)).sort(2,ascending=False).reset_index().drop('index', axis=1)
-            #q+=1
-            #if q == 3:
-            #    break
+            q+=1
+            if q == 3:
+                break
             #rows.to_csv("%s_%s_best5p_net.txt"%(out[j],k),sep='\t',index=False)
             ##print m.ix[0:5,0:5]
             ##m = m.add(m.transpose())
@@ -91,8 +91,8 @@ def main():
             ##ft[k] = m
         nets = netmetrics(st)
         #nets.wdegree().to_csv("%s_best5p_wdegree_st.txt"%out[j],sep="\t")
-        nets.clustercoef().to_csv("%s_best5p_clustcoef.txt"%out[j],sep="\t")
-        #nets.eigvectc().to_csv("%s_eigvectc.txt"%out[j],sep="\t")
+        #nets.clustercoef().to_csv("%s_best5p_clustcoef.txt"%out[j],sep="\t")
+        nets.eigvectc().to_csv("%s_best5p_eigvectc.txt"%out[j],sep="\t")
         #nets.betwcent().to_csv("%s_betwcent.txt"%out[j],sep="\t")
         #nets.aveshortest().to_csv("%s_avshortest.txt"%out[j],sep="\t")
         #nets.degassortcoef().to_csv("%s_assortcoef.txt"%out[j],sep="\t")
@@ -134,6 +134,7 @@ class netmetrics():
             for k in self.nets.keys():
                 G= nx.DiGraph()
                 G.add_weighted_edges_from(self.nets[k])
+                G = G.to_undirected()
                 wdegree = G.degree(weight='weight')
                 #wd = node[wdegree[node] for node in wdegree]
                 wd={}
@@ -163,21 +164,38 @@ class netmetrics():
                 clustering = nx.clustering(G,weight='weight')
                 acc = acc.append(clustering,ignore_index=True)
                 id[acc.index[-1]]=k
-                print acc.ix[0:5,0:5]
-                sys.exit('stop')
             acc.rename(index=id,inplace=True)
         return acc
     def eigvectc(self):
         '''
         It returns eigenvector centrality from each network
         '''
-        evc=pd.DataFrame(np.nan,index=self.indiv,columns=self.nodes)
-        for k in self.indiv:
-            G = nx.from_numpy_matrix(self.nets[k].values)
-            G.edges(data=True)
-            centrality = nx.eigenvector_centrality_numpy(G,weight='weight')
-            nevc = [centrality[node] for node in centrality]
-            evc.loc[k] = nevc
+        if self.pd :
+            evc=pd.DataFrame(np.nan,index=self.indiv,columns=self.nodes)
+            for k in self.indiv:
+                G = nx.from_numpy_matrix(self.nets[k].values)
+                G.edges(data=True)
+                centrality = nx.eigenvector_centrality_numpy(G,weight='weight')
+                nevc = [centrality[node] for node in centrality]
+                evc.loc[k] = nevc
+        else:
+            evc = pd.DataFrame()
+            id = {}
+            for k in self.nets.keys():
+                G = nx.DiGraph()
+                G.add_weighted_edges_from(self.nets[k])
+                try:
+                    G = G.to_undirected()
+                    centrality = nx.eigenvector_centrality(G)
+                    evc = evc.append(centrality,ignore_index=True)
+                except nx.NetworkXError:
+                    G = nx.DiGraph()
+                    G.add_weighted_edges_from(self.nets[k])
+                    centrality = nx.eigenvector_centrality(G)
+                    evc = evc.append(centrality,ignore_index=True)
+                    evc.iloc[-1,] = evc.iloc[-1,].replace(0,np.nan)
+                id[evc.index[-1]]=k
+            evc.rename(index=id,inplace=True)
         return evc
     def betwcent(self):
         '''
@@ -228,15 +246,23 @@ class netmetrics():
         return dac
     def graph(self):
         #print so.ix[:5,:5]
-        for k in self.indiv:
-            G = nx.from_numpy_matrix(self.nets[k].values)
-            G.edges(data=True)
-            #print G.nodes()
-            #print G.edges(data=True)
-            #for i in G.nodes():
-            #    print G.degree(i,weight='weight')
-            #print G.degree(weight='weight')
-            nx.draw(G)
-            plt.show()
-
+        if self.pd :
+            for k in self.indiv:
+                G = nx.from_numpy_matrix(self.nets[k].values)
+                G.edges(data=True)
+                #print G.nodes()
+                #print G.edges(data=True)
+                #for i in G.nodes():
+                #    print G.degree(i,weight='weight')
+                #print G.degree(weight='weight')
+                nx.draw(G)
+                plt.show()
+        else:
+            for k in self.nets.keys():
+                G = nx.DiGraph()
+                G.add_weighted_edges_from(self.nets[k])
+                G = G.to_undirected()
+                plt.clf()
+                nx.draw_spring(G)
+                plt.show()
 if __name__ == "__main__": main()
