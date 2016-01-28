@@ -92,11 +92,11 @@ def main():
         nets = netmetrics(st)
         #nets.wdegree().to_csv("%s_best5p_wdegree_st.txt"%out[j],sep="\t")
         #nets.clustercoef().to_csv("%s_best5p_clustcoef.txt"%out[j],sep="\t")
-        nets.eigvectc().to_csv("%s_best5p_eigvectc.txt"%out[j],sep="\t")
-        #nets.betwcent().to_csv("%s_betwcent.txt"%out[j],sep="\t")
-        #nets.aveshortest().to_csv("%s_avshortest.txt"%out[j],sep="\t")
-        #nets.degassortcoef().to_csv("%s_assortcoef.txt"%out[j],sep="\t")
-        #nets.closeness().to_csv("%s_closeness.txt"%out[j],sep="\t")
+        #nets.eigvectc().to_csv("%s_best5p_eigvectc.txt"%out[j],sep="\t")
+        #nets.betwcent().to_csv("%s_best5p_betwcent.txt"%out[j],sep="\t")
+        nets.aveshortest().to_csv("%s_best5p_avshortest.txt"%out[j],sep="\t")
+        #nets.degassortcoef().to_csv("%s_best5p_assortcoef.txt"%out[j],sep="\t")
+        #nets.closeness().to_csv("%s_best5p_closeness.txt"%out[j],sep="\t")
         #nets.graph()
         j+=1
 
@@ -105,9 +105,10 @@ def main():
 class netmetrics():
     """ Calculates some network metrics.
     """
-    def __init__(self,tensor):
+    def __init__(self,tensor,directed=False):
         assert type(tensor) is dict
         self.nets = tensor
+        self.directed = directed
         if type(tensor[tensor.keys()[0]]) != list:
             self.pd = True
             self.nodes = list(tensor[tensor.keys()[0]].columns.values)
@@ -203,14 +204,53 @@ class netmetrics():
         *For weighted graphs the edge weights must be greater than zero.
         Zero edge weights can produce an infinite number of equal length paths between pairs of nodes.
         '''
-        bc=pd.DataFrame(np.nan,index=self.indiv,columns=self.nodes)
-        for k in self.indiv:
-            G = nx.from_numpy_matrix(self.nets[k].values)
-            G.edges(data=True)
-            betw = nx.betweenness_centrality(G,weight='weight')
-            bt = [betw[node] for node in betw]
-            bc.loc[k] = bt
+        if self.pd :
+            bc=pd.DataFrame(np.nan,index=self.indiv,columns=self.nodes)
+            for k in self.indiv:
+                G = nx.from_numpy_matrix(self.nets[k].values)
+                G.edges(data=True)
+                betw = nx.betweenness_centrality(G,weight='weight')
+                bt = [betw[node] for node in betw]
+                bc.loc[k] = bt
+        else:
+            bc = pd.DataFrame()
+            id = {}
+            for k in self.nets.keys():
+                G = nx.DiGraph()
+                G.add_weighted_edges_from(self.nets[k])
+                if self.directed == False:
+                    G = G.to_undirected()
+                    betw = nx.betweenness_centrality(G,weight='weight')
+                    bc = bc.append(betw,ignore_index=True)
+                else:
+                    betw = nx.betweenness_centrality(G,weight='weight')
+                    bc = bc.append(betw,ignore_index=True)
+                id[bc.index[-1]]=k
+            bc.rename(index=id,inplace=True)
         return bc
+    def aveshortest(self):
+        '''
+        It returns average shortest path from each network. needs full conected network
+        '''
+        if self.pd :
+            asp=pd.DataFrame(np.nan,index=self.indiv,columns=['ave_shortest_path'])
+            for k in self.indiv:
+                G = nx.from_numpy_matrix(self.nets[k].values)
+                G.edges(data=True)
+                asp.loc[k] = nx.average_shortest_path_length(G,weight='weight')
+        else:
+            asp=pd.DataFrame(np.nan,index=self.indiv,columns=['ave_shortest_path'])
+            id = {}
+            for k in self.nets.keys():
+                G = nx.DiGraph()
+                G.add_weighted_edges_from(self.nets[k])
+                if self.directed == False:
+                    G = G.to_undirected()
+                    asp.loc[k] = nx.average_shortest_path_length(G,weight='weight')
+                else:
+                    asp.loc[k] = nx.average_shortest_path_length(G,weight='weight')
+            print asp.ix[:,:]
+        return asp
     def closeness(self):
         '''
         It returns closeness centrality from each network.
@@ -223,16 +263,6 @@ class netmetrics():
             c = [closeness[node] for node in closeness]
             cc.loc[k] = c
         return cc
-    def aveshortest(self):
-        '''
-        It returns average shortest path from each network. needs full conected network
-        '''
-        asp=pd.DataFrame(np.nan,index=self.indiv,columns=['ave_shortest_path'])
-        for k in self.indiv:
-            G = nx.from_numpy_matrix(self.nets[k].values)
-            G.edges(data=True)
-            asp.loc[k] = nx.average_shortest_path_length(G,weight='weight')
-        return asp
     def degassortcoef(self):
         '''
         It returns degree assortativity coefficient path from each network
