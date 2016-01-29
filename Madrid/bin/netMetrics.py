@@ -92,9 +92,9 @@ def main():
         nets = netmetrics(st)
         #nets.wdegree().to_csv("%s_best5p_wdegree_st.txt"%out[j],sep="\t")
         #nets.clustercoef().to_csv("%s_best5p_clustcoef.txt"%out[j],sep="\t")
-        #nets.eigvectc().to_csv("%s_best5p_eigvectc.txt"%out[j],sep="\t")
+        nets.eigvectc().to_csv("%s_best5p_eigvectc.txt"%out[j],sep="\t")
         #nets.betwcent().to_csv("%s_best5p_betwcent.txt"%out[j],sep="\t")
-        nets.aveshortest().to_csv("%s_best5p_avshortest.txt"%out[j],sep="\t")
+        #nets.aveshortest().to_csv("%s_best5p_avshortest.txt"%out[j],sep="\t")
         #nets.degassortcoef().to_csv("%s_best5p_assortcoef.txt"%out[j],sep="\t")
         #nets.closeness().to_csv("%s_best5p_closeness.txt"%out[j],sep="\t")
         #nets.graph()
@@ -185,16 +185,16 @@ class netmetrics():
             for k in self.nets.keys():
                 G = nx.DiGraph()
                 G.add_weighted_edges_from(self.nets[k])
-                try:
+                if self.directed == False:
                     G = G.to_undirected()
                     centrality = nx.eigenvector_centrality(G)
                     evc = evc.append(centrality,ignore_index=True)
-                except nx.NetworkXError:
-                    G = nx.DiGraph()
-                    G.add_weighted_edges_from(self.nets[k])
-                    centrality = nx.eigenvector_centrality(G)
-                    evc = evc.append(centrality,ignore_index=True)
-                    evc.iloc[-1,] = evc.iloc[-1,].replace(0,np.nan)
+                #except nx.NetworkXError:
+                #    G = nx.DiGraph()
+                #    G.add_weighted_edges_from(self.nets[k])
+                #    centrality = nx.eigenvector_centrality(G)
+                #    evc = evc.append(centrality,ignore_index=True)
+                #    evc.iloc[-1,] = evc.iloc[-1,].replace(0,np.nan)
                 id[evc.index[-1]]=k
             evc.rename(index=id,inplace=True)
         return evc
@@ -239,17 +239,21 @@ class netmetrics():
                 G.edges(data=True)
                 asp.loc[k] = nx.average_shortest_path_length(G,weight='weight')
         else:
-            asp=pd.DataFrame(np.nan,index=self.indiv,columns=['ave_shortest_path'])
+            asp=pd.DataFrame(np.nan,index=self.indiv,columns=['ave_shortest_path','subNetNodes','netNodes'])
             id = {}
             for k in self.nets.keys():
                 G = nx.DiGraph()
                 G.add_weighted_edges_from(self.nets[k])
                 if self.directed == False:
                     G = G.to_undirected()
-                    asp.loc[k] = nx.average_shortest_path_length(G,weight='weight')
+                    for g in nx.connected_component_subgraphs(G):
+                        if len(g.nodes()) > 0.8*(len(G.nodes())): asp.loc[k] = pd.Series({'ave_shortest_path':nx.average_shortest_path_length(g,weight='weight'), 'subNetNodes':len(g.nodes()), 'netNodes':len(G.nodes())})
+                        #[nx.average_shortest_path_length(G,weight='weight'),len(g.nodes()),len(G.nodes())]
+
                 else:
-                    asp.loc[k] = nx.average_shortest_path_length(G,weight='weight')
-            print asp.ix[:,:]
+                    G = G.to_undirected()
+                    for g in nx.connected_component_subgraphs(G):
+                        if len(g.nodes()) > 0.8*(len(G.nodes())): asp.loc[k] = pd.Series({'ave_shortest_path':nx.average_shortest_path_length(g,weight='weight'), 'subNetNodes':len(g.nodes()), 'netNodes':len(G.nodes())})
         return asp
     def closeness(self):
         '''
