@@ -36,11 +36,11 @@ By Guillermo G. Torres (ggtorrese@unal.edu.co)
 - IKMB - Christian-Albrechts-Universitat zu Kiel"""
 
 parser = OptionParser(usage=usage,version="%prog 1.0")
-parser.add_option("-i","--input",type="string",action="store",dest="tensor",default='OTUp_SO_males',
+parser.add_option("-i","--input",type="string",action="store",dest="tensor",default='OTUp_SO_females',
                       help="Input file. Pandas dataframe (numpy based matrix)")
-parser.add_option("-a","--atrib",type="string",action="store",dest="atrib",default='SO_males',
+parser.add_option("-a","--atrib",type="string",action="store",dest="atrib",default='SO_females',
                       help="SOsin matrix")
-parser.add_option("-o","--out",type="string",action="store",dest="out",default='OTUp_males',
+parser.add_option("-o","--out",type="string",action="store",dest="out",default='OTUp_females',
                       help="SOsin matrix")
 parser.add_option("-S", action="store_true",dest="mothur",default=True,
                       help = "True if input is '.cons.tax.summary' from mothur - default False")

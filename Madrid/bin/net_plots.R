@@ -22,26 +22,27 @@ library(plyr)
 
 #* Globals *#
 script_loc = getwd()
-setwd("~/Documents/Projects/Metagenome/Madrid/results/")
-files.path = '~/Documents/Projects/Metagenome/Madrid/bin/'#
+#setwd("~/Documents/Projects/Metagenome/Madrid/results/")
+#files.path = '~/Documents/Projects/Metagenome/Madrid/bin/'#
+files.path = script_loc
 prefix <- "JP_"
 
 
 
-m_wdeg <- read.table(paste(files.path,'OTU_best5p/OTUp_males_best5p_wdegree_st.txt',sep=''),header=T,sep="\t")
-f_wdeg <- read.table(paste(files.path,'OTU_best5p/OTUp_females_best5p_wdegree_st.txt',sep=''),header=T,sep="\t")
+m_wdeg <- read.table(paste(files.path,'/OTU_best5p/OTUp_males_best5p_wdegree_st.txt',sep=''),header=T,sep="\t")
+f_wdeg <- read.table(paste(files.path,'/OTU_best5p/OTUp_females_best5p_wdegree_st.txt',sep=''),header=T,sep="\t")
+
+m_clos <- read.table(paste(files.path,'/OTU_best5p/OTUp_males_best5p_clustcoef.txt',sep=''),header=T,sep="\t")
+f_clos <- read.table(paste(files.path,'/OTU_best5p/OTUp_females_best5p_clustcoef.txt',sep=''),header=T,sep="\t")
+
+m_eigc <- read.table(paste(files.path,'/OTU_best5p/OTUp_males_best5p_eigvectc.txt',sep=''),header=T,sep="\t")
+f_eigc <- read.table(paste(files.path,'/OTU_best5p/OTUp_females_best5p_eigvectc.txt',sep=''),header=T,sep="\t")
 
 m_ass <- read.table(paste(files.path,'males_assortcoef.txt',sep=''),header=T,sep="\t")
 f_ass <- read.table(paste(files.path,'females_assortcoef.txt',sep=''),header=T,sep="\t")
 
 m_bwc <- read.table(paste(files.path,'males_betwcent.txt',sep=''),header=T,sep="\t")
 f_bwc <- read.table(paste(files.path,'females_betwcent.txt',sep=''),header=T,sep="\t")
-
-m_clos <- read.table(paste(files.path,'males_closeness.txt',sep=''),header=T,sep="\t")
-f_clos <- read.table(paste(files.path,'females_closeness.txt',sep=''),header=T,sep="\t")
-
-m_eigc <- read.table(paste(files.path,'males_eigvectc.txt',sep=''),header=T,sep="\t")
-f_eigc <- read.table(paste(files.path,'females_eigvectc.txt',sep=''),header=T,sep="\t")
 
 m_acc <- read.table(paste(files.path,'males_avclustcoef.txt',sep=''),header=T,sep="\t")
 f_acc <- read.table(paste(files.path,'females_avclustcoef.txt',sep=''),header=T,sep="\t")
@@ -171,6 +172,56 @@ dev.off()
 colnames(wdSE) <- c("WinAge","NumOTUs","aveStrength","stdDev","stdError","ConfInterv","Gender")
 write.table(wdSE,file="Best5p_strength_Stats.txt",sep="\t",row.names=FALSE)
 
+
+
+#--------------------------#
+#  Eigenvector Centrality  #
+#--------------------------#
+
+head(m_eigc[,1:5])
+qplot(x=m_eigc$'X',y=m_eigc[,4],data=m_eigc,geom="line")
+qplot(x=f_eigc$'X',y=f_eigc[,4],data=f_eigc,geom="line")
+
+m_eit <- melt(m_eigc,id.vars=c("X"))
+m_eiSE <- summarySE(m_eit,measurevar="value",groupvars=c("X"),na.rm=TRUE)
+m_eiSE$"gender" <- rep("male",NROW(m_eiSE))
+
+f_eit <- melt(f_eigc,id.vars=c("X"))
+f_eiSE <- summarySE(f_eit,measurevar="value",groupvars=c("X"),na.rm=TRUE)
+f_eiSE$"gender" <- rep("female",NROW(f_eiSE))
+
+eiSE <- rbind(m_eiSE,f_eiSE)
+
+pdf("JP_eigenvector.pdf", pointsize = 12, width = 10 , height = 7 ) 
+ggplot(data=eiSE,aes(X,value,color=gender))+geom_line()+geom_point()+
+  ylab("Mean of Eigenvector Centrality")+xlab("Window age mean")+
+  ggtitle("Eigenvector Centrality")+geom_errorbar(aes(ymin=value-se, ymax=value+se), width=.1)
+dev.off()
+
+#----------------------------------#
+#  Average clustering coefficient  #
+#----------------------------------#
+
+head(m_clos)
+m_accx <- m_acc
+f_accx <- f_acc
+
+m_clc <- melt(m_clos,id.vars=c("X"))
+m_clcSE <- summarySE(m_clc,measurevar="value",groupvars=c("X"),na.rm=TRUE)
+m_clcSE$"gender" <- rep("male",NROW(m_clcSE))
+
+f_clc <- melt(f_clos,id.vars=c("X"))
+f_clcSE <- summarySE(f_clc,measurevar="value",groupvars=c("X"),na.rm=TRUE)
+f_clcSE$"gender" <- rep("female",NROW(f_clcSE))
+
+clcSE <- rbind(m_clcSE,f_clcSE)
+
+pdf("clusteringCoef.pdf", pointsize = 12, width = 10 , height = 7 ) 
+ggplot(data=clcSE,aes(X,value,color=gender))+geom_line()+geom_point()+
+  ylab("Mean of clustering coefficient")+xlab("Window age mean")+
+  ggtitle("Clustering coefficient")+geom_errorbar(aes(ymin=value-se, ymax=value+se), width=.1)
+dev.off()
+
 #-------------#
 #  Closeness  #
 #-------------#
@@ -195,48 +246,6 @@ ggplot(data=clSE,aes(X,value,color=gender))+geom_line()+geom_point()+
   ggtitle("Closeness")+geom_errorbar(aes(ymin=value-se, ymax=value+se), width=.1)
 dev.off()
 
-
-#--------------------------#
-#  Eigenvector Centrality  #
-#--------------------------#
-
-head(m_eigc[,1:5])
-qplot(x=m_eigc$'X',y=m_eigc[,4],data=m_eigc,geom="line")
-qplot(x=f_eigc$'X',y=f_eigc[,4],data=f_eigc,geom="line")
-
-m_eit <- melt(m_eigc,id.vars=c("X"))
-m_eiSE <- summarySE(m_eit,measurevar="value",groupvars=c("X"))
-m_eiSE$"gender" <- rep("male",NROW(m_eiSE))
-
-f_eit <- melt(f_eigc,id.vars=c("X"))
-f_eiSE <- summarySE(f_eit,measurevar="value",groupvars=c("X"))
-f_eiSE$"gender" <- rep("female",NROW(f_eiSE))
-
-eiSE <- rbind(m_eiSE,f_eiSE)
-
-pdf("JP_eigenvector.pdf", pointsize = 12, width = 10 , height = 7 ) 
-ggplot(data=eiSE,aes(X,value,color=gender))+geom_line()+geom_point()+
-  ylab("Mean of Eigenvector Centrality")+xlab("Window age mean")+
-  ggtitle("Eigenvector Centrality")+geom_errorbar(aes(ymin=value-se, ymax=value+se), width=.1)
-dev.off()
-
-#----------------------------------#
-#  Average clustering coefficient  #
-#----------------------------------#
-
-head(m_acc)
-m_accx <- m_acc
-f_accx <- f_acc
-
-m_accx$"gender" <- rep("male",NROW(m_acc))
-f_accx$"gender" <- rep("female",NROW(f_acc))
-acc <- rbind(m_accx,f_accx)
-
-pdf("JP_assortativity.pdf", pointsize = 12, width = 10 , height = 7 ) 
-ggplot(data=acc,aes(X,ave_cluster_coef,color=gender))+geom_line()+geom_point()+
-  ylab("Average assortativity")+xlab("Window age mean")+
-  ggtitle("Assortativity coefficient")#+geom_errorbar(aes(ymin=value-se, ymax=value+se), width=.1)
-dev.off()
 
 #------------------------------#
 #  Assortativity coefficient  #
