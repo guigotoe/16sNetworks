@@ -25,29 +25,30 @@ script_loc = getwd()
 #setwd("~/Documents/Projects/Metagenome/Madrid/results/")
 #files.path = '~/Documents/Projects/Metagenome/Madrid/bin/'#
 files.path = script_loc
-prefix <- "JP_"
+#prefix <- "JP_"
 
 
 
 m_wdeg <- read.table(paste(files.path,'/OTU_best5p/OTUp_males_best5p_wdegree_st.txt',sep=''),header=T,sep="\t")
 f_wdeg <- read.table(paste(files.path,'/OTU_best5p/OTUp_females_best5p_wdegree_st.txt',sep=''),header=T,sep="\t")
 
-m_clos <- read.table(paste(files.path,'/OTU_best5p/OTUp_males_best5p_clustcoef.txt',sep=''),header=T,sep="\t")
-f_clos <- read.table(paste(files.path,'/OTU_best5p/OTUp_females_best5p_clustcoef.txt',sep=''),header=T,sep="\t")
-
 m_eigc <- read.table(paste(files.path,'/OTU_best5p/OTUp_males_best5p_eigvectc.txt',sep=''),header=T,sep="\t")
 f_eigc <- read.table(paste(files.path,'/OTU_best5p/OTUp_females_best5p_eigvectc.txt',sep=''),header=T,sep="\t")
 
-m_ass <- read.table(paste(files.path,'males_assortcoef.txt',sep=''),header=T,sep="\t")
-f_ass <- read.table(paste(files.path,'females_assortcoef.txt',sep=''),header=T,sep="\t")
+m_clus <- read.table(paste(files.path,'/OTU_best5p/OTUp_males_best5p_clustcoef.txt',sep=''),header=T,sep="\t")
+f_clus <- read.table(paste(files.path,'/OTU_best5p/OTUp_females_best5p_clustcoef.txt',sep=''),header=T,sep="\t")
 
-m_bwc <- read.table(paste(files.path,'males_betwcent.txt',sep=''),header=T,sep="\t")
-f_bwc <- read.table(paste(files.path,'females_betwcent.txt',sep=''),header=T,sep="\t")
+m_clos <- read.table(paste(files.path,'/OTU_best5p/OTUp_males_best5p_closeness.txt',sep=''),header=T,sep="\t")
+f_clos <- read.table(paste(files.path,'/OTU_best5p/OTUp_females_best5p_closeness.txt',sep=''),header=T,sep="\t")
 
-m_acc <- read.table(paste(files.path,'males_avclustcoef.txt',sep=''),header=T,sep="\t")
-f_acc <- read.table(paste(files.path,'females_avclustcoef.txt',sep=''),header=T,sep="\t")
+m_bwc <- read.table(paste(files.path,'/OTU_best5p/OTUp_males_best5p_betwcent.txt',sep=''),header=T,sep="\t")
+f_bwc <- read.table(paste(files.path,'/OTU_best5p/OTUp_females_best5p_betwcent.txt',sep=''),header=T,sep="\t")
 
-asp <- read.table('avshortest.txt',header=T,sep="\t")
+m_ashp <- read.table(paste(files.path,'/OTU_best5p/OTUp_males_best5p_avshortest.txt',sep=''),header=T,sep="\t")
+f_ashp <- read.table(paste(files.path,'/OTU_best5p/OTUp_females_best5p_avshortest.txt',sep=''),header=T,sep="\t")
+
+#m_ass <- read.table(paste(files.path,'males_assortcoef.txt',sep=''),header=T,sep="\t")
+#f_ass <- read.table(paste(files.path,'females_assortcoef.txt',sep=''),header=T,sep="\t")
 
 
 ##################
@@ -97,8 +98,8 @@ summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE,
   return(datac)
 }
 
-df <- m_wdeg
-sample <- "Males"
+df <- f_wdeg
+sample <- "Females"
 
 OTUstGraph <- function (df,sample){
   z = data.frame("X"=NULL,"N"=NULL,"P"=NULL,"V"=NULL)
@@ -172,8 +173,6 @@ dev.off()
 colnames(wdSE) <- c("WinAge","NumOTUs","aveStrength","stdDev","stdError","ConfInterv","Gender")
 write.table(wdSE,file="Best5p_strength_Stats.txt",sep="\t",row.names=FALSE)
 
-
-
 #--------------------------#
 #  Eigenvector Centrality  #
 #--------------------------#
@@ -192,7 +191,7 @@ f_eiSE$"gender" <- rep("female",NROW(f_eiSE))
 
 eiSE <- rbind(m_eiSE,f_eiSE)
 
-pdf("JP_eigenvector.pdf", pointsize = 12, width = 10 , height = 7 ) 
+pdf("Best5p_eigenvector.pdf", pointsize = 12, width = 10 , height = 7 ) 
 ggplot(data=eiSE,aes(X,value,color=gender))+geom_line()+geom_point()+
   ylab("Mean of Eigenvector Centrality")+xlab("Window age mean")+
   ggtitle("Eigenvector Centrality")+geom_errorbar(aes(ymin=value-se, ymax=value+se), width=.1)
@@ -202,21 +201,21 @@ dev.off()
 #  Average clustering coefficient  #
 #----------------------------------#
 
-head(m_clos)
+head(m_clus)
 m_accx <- m_acc
 f_accx <- f_acc
 
-m_clc <- melt(m_clos,id.vars=c("X"))
+m_clc <- melt(m_clus,id.vars=c("X"))
 m_clcSE <- summarySE(m_clc,measurevar="value",groupvars=c("X"),na.rm=TRUE)
 m_clcSE$"gender" <- rep("male",NROW(m_clcSE))
 
-f_clc <- melt(f_clos,id.vars=c("X"))
+f_clc <- melt(f_clus,id.vars=c("X"))
 f_clcSE <- summarySE(f_clc,measurevar="value",groupvars=c("X"),na.rm=TRUE)
 f_clcSE$"gender" <- rep("female",NROW(f_clcSE))
 
 clcSE <- rbind(m_clcSE,f_clcSE)
 
-pdf("clusteringCoef.pdf", pointsize = 12, width = 10 , height = 7 ) 
+pdf("Best5p_clusteringCoef.pdf", pointsize = 12, width = 10 , height = 7 ) 
 ggplot(data=clcSE,aes(X,value,color=gender))+geom_line()+geom_point()+
   ylab("Mean of clustering coefficient")+xlab("Window age mean")+
   ggtitle("Clustering coefficient")+geom_errorbar(aes(ymin=value-se, ymax=value+se), width=.1)
@@ -230,39 +229,63 @@ head(m_clos[,1:5])
 qplot(x=m_clos$'X',y=m_clos[,4],data=m_clos,geom="line")
 qplot(x=f_clos$'X',y=f_clos[,4],data=f_clos,geom="line")
 
-m_clt <- melt(m_clos,id.vars=c("X"))
-m_clSE <- summarySE(m_clt,measurevar="value",groupvars=c("X"))
-m_clSE$"gender" <- rep("male",NROW(m_clSE))
+m_clot <- melt(m_clos,id.vars=c("X"))
+m_cloSE <- summarySE(m_clot,measurevar="value",groupvars=c("X"),na.rm=TRUE)
+m_cloSE$"gender" <- rep("male",NROW(m_cloSE))
 
-f_clt <- melt(f_clos,id.vars=c("X"))
-f_clSE <- summarySE(f_clt,measurevar="value",groupvars=c("X"))
-f_clSE$"gender" <- rep("female",NROW(f_clSE))
+f_clot <- melt(f_clos,id.vars=c("X"))
+f_cloSE <- summarySE(f_clot,measurevar="value",groupvars=c("X"),na.rm=TRUE)
+f_cloSE$"gender" <- rep("female",NROW(f_cloSE))
 
-clSE <- rbind(m_clSE,f_clSE)
+cloSE <- rbind(m_cloSE,f_cloSE)
 
-pdf("JP_closeness.pdf", pointsize = 12, width = 10 , height = 7 ) 
-ggplot(data=clSE,aes(X,value,color=gender))+geom_line()+geom_point()+
+pdf("Best5p_closeness.pdf", pointsize = 12, width = 10 , height = 7 ) 
+ggplot(data=cloSE,aes(X,value,color=gender))+geom_line()+geom_point()+
   ylab("Mean of closeness")+xlab("Window age mean")+
   ggtitle("Closeness")+geom_errorbar(aes(ymin=value-se, ymax=value+se), width=.1)
 dev.off()
 
+#--------------------------#
+# betweenness centrality   #
+#--------------------------#
+
+head(m_bwc)
+qplot(x=m_clos$'X',y=m_clos[,4],data=m_clos,geom="line")
+qplot(x=f_clos$'X',y=f_clos[,4],data=f_clos,geom="line")
+
+m_bwct <- melt(m_bwc,id.vars=c("X"))
+m_bwcSE <- summarySE(m_bwct,measurevar="value",groupvars=c("X"),na.rm=TRUE)
+m_bwcSE$"gender" <- rep("male",NROW(m_bwcSE))
+
+f_bwct <- melt(f_bwc,id.vars=c("X"))
+f_bwcSE <- summarySE(f_bwct,measurevar="value",groupvars=c("X"),na.rm=TRUE)
+f_bwcSE$"gender" <- rep("female",NROW(f_bwcSE))
+
+bwcSE <- rbind(m_bwcSE,f_bwcSE)
+
+pdf("Best5p_Betweeness.pdf", pointsize = 12, width = 10 , height = 7 ) 
+ggplot(data=bwcSE,aes(X,value,color=gender))+geom_line()+geom_point()+
+  ylab("Mean of betweenness centrality")+xlab("Window age mean")+
+  ggtitle("Betweenness centrality")+geom_errorbar(aes(ymin=value-se, ymax=value+se), width=.1)
+dev.off()
+
 
 #------------------------------#
-#  Assortativity coefficient  #
+#  Average Shortest Path  #
 #------------------------------#
 
-head(m_ass)
-m_assx <- m_ass
-f_assx <- f_ass
+head(m_ashp)
+m_asp <- m_ashp
+f_asp <- f_ashp
 
-m_assx$"gender" <- rep("male",NROW(m_ass))
-f_assx$"gender" <- rep("female",NROW(f_ass))
-ass <- rbind(m_assx,f_assx)
+m_asp$"gender" <- rep("male",NROW(m_ashp))
+f_asp$"gender" <- rep("female",NROW(f_ashp))
+asp <- rbind(m_asp,f_asp)
 
-pdf("JP_clustering.pdf", pointsize = 12, width = 10 , height = 7 ) 
-ggplot(data=ass,aes(X,ave_cluster_coef,color=gender))+geom_line()+geom_point()+
-  ylab("Average clustering coef.")+xlab("Window age mean")+#ylim(-0.004,-0.003)+
-  ggtitle("Clustering coefficient")#+geom_errorbar(aes(ymin=value-se, ymax=value+se), width=.1)
+pdf("Best5p_AveShPath.pdf", pointsize = 12, width = 10 , height = 7 ) 
+ggplot(data=asp,aes(X,ave_shortest_path,color=gender))+geom_line()+geom_point()+
+  ylab("Mean of shortest path")+xlab("Window age mean")+#ylim(-0.004,-0.003)+
+  ggtitle("Average shortest path")#+geom_errorbar(aes(ymin=value-se, ymax=value+se), width=.1)
 dev.off()
 
 #----------------------------------#
