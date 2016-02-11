@@ -1,0 +1,16 @@
+#Mothur commands batch mode
+#
+set.current(fasta=16s.file_qc.trim.contigs.good.unique.good.filter.fasta,group=16s.file_qc.contigs.good.groups,name=16s.file_qc.trim.contigs.good.names,count=16s.file_qc.trim.contigs.good.good.count_table,summary=16s.file_qc.trim.contigs.good.unique.good.filter.summary,processors=16)
+pre.cluster(fasta=current,count=current,diffs=2)
+get.current()
+chimera.uchime(fasta=current,reference=/home/sukmb347/sukmb347/Metagenome/db/silva.gold.align)
+get.current()
+remove.seqs(fasta=current,accnos=current,name=current)
+summary.seqs(fasta=current,count=current)
+classify.seqs(fasta=current, count=current, reference=/home/sukmb347/sukmb347/Metagenome/db/silva.nr_v119/silva.nr_v119.align, taxonomy=/home/sukmb347/sukmb347/Metagenome/db/silva.nr_v119/silva.nr_v119.tax, cutoff=80)
+remove.lineage(fasta=current, count=current, taxonomy=current, taxon=Chloroplast-Mitochondria-unknown-Archaea-Eukaryota)
+get.current()
+cluster.split(fasta=current,count=current,taxonomy=current,splitmethod=classify,taxlevel=4,cutoff=0.15)
+get.current()
+make.shared(list=current, count=current,label=0.03)
+classify.otu(list=current, count=current,taxonomy=current,label=0.03)

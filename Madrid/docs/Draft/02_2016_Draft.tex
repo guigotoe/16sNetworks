@@ -1,0 +1,93 @@
+\documentclass[10pt,letterpaper]{article}
+
+% Use adjustwidth environment to exceed column width (see example table in text)
+\usepackage{changepage}
+
+% Use Unicode characters when possible
+\usepackage[utf8]{inputenc}
+
+% fixltx2e package for \textsubscript
+\usepackage{fixltx2e}
+
+% amsmath and amssymb packages, useful for mathematical formulas and symbols
+\usepackage{amsmath,amssymb}
+
+% cite package, to clean up citations in the main text. Do not remove.
+\usepackage{cite}
+
+% Use nameref to cite supporting information files (see Supporting Information section for more info)
+\usepackage{nameref,hyperref}
+
+\begin{document}
+\vspace*{0.35in}
+
+% Title must be 150 characters or less
+\begin{flushleft}
+{\Large
+\textbf\newline{\textbf{Microbial co-ocurrences - microbial correlation Networks - Time Series - Human Gut - Survey genomic data 16S}}
+}
+\newline
+% Insert Author names, affiliations and corresponding author email.
+%\\
+%Guillermo G. Torres\textsuperscript{1},
+%Javier Buldu\textsuperscript{2}
+%J. H. Martinez\textsuperscript{2,3}
+%\\
+%\bf{1} Institute of Clinical Molecular Biology, University of Kiel, Kiel, Germany
+%\\
+%\bf{2} Technical University of Madrid, Madrid, Spain
+%\bf{3} Universidad del Rosario, Bogotá, Colombia
+%\\
+%* E-mail: Corresponding g.torres@uni-kiel.edu.co
+\end{flushleft}
+
+% Please keep the abstract below 300 words
+\section*{Abstract}
+Bla bla bla
+
+
+\section*{Introduction}
+
+\section*{Materials and Methods}
+Our aim is to identify a correlation between species withing ecological communities and their dynamics over time. 
+\\
+\subsection*{Counts and taxonomical assignment of OTU}
+OTU counts and their taxonomical classification from 244 unrelated individuals were obtained using "Mothur - Lotus" software (ref). Reads were classified using Silva 16S rRNA reference database. 
+\\\\
+-Output: OTU counts
+\\
+\subsection*{Data treatment}
+The OTU counts are very sparse where zero values dominated most count values. We Assumed that nonsufficient sampling effort explains zero values, and that means zero values refer to unobserved values caused by the limited size of the sample. Under this assumption, we treated the zero values using the Bayesian-multiplicative approach (Pawlowsky-Glahn et. al. 2011-chap4).
+\\
+\\
+r_{ij}=\begin{cases}
+	(t_{ij}s_{i})/(N_{i}+s{i})&	\text{if} x_{ij}=0
+	x_{ij}=0(1-E)& \text{if} x_{ij}=0
+	\end{cases}
+\\
+\\
+\begin{gather}
+
+\end{gather}
+\\
+\subsection*{Microbial correlation network}
+Owing to sequencing depth the total read counts across samples were different. Therefore, the OTU counts are normalized by the total number of counts. The resulting proportions fall into the category of compositional data which has its particular geometrical and statistical properties (Pawlowsky-Glahn et. al. 2011).
+
+\begin{enumerate}
+\item{react}
+\item{diffuse free particles}
+\item{increment time by dt and go to 1}
+\end{enumerate}
+
+\section*{Results}
+
+\section*{Discussion}
+
+\section*{Supporting Information}
+
+\begin{thebibliography}{10}
+
+
+\end{thebibliography}
+
+\end{document}
