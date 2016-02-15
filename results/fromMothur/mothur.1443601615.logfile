@@ -1,0 +1,1345 @@
+Linux version
+
+Using ReadLine
+
+Running 64Bit Version
+
+mothur v.1.35.1
+Last updated: 03/31/2015
+
+by
+Patrick D. Schloss
+
+Department of Microbiology & Immunology
+University of Michigan
+pschloss@umich.edu
+http://www.mothur.org
+
+When using, please cite:
+Schloss, P.D., et al., Introducing mothur: Open-source, platform-independent, community-supported software for describing and comparing microbial communities. Appl Environ Microbiol, 2009. 75(23):7537-41.
+
+Distributed under the GNU General Public License
+
+Type 'help()' for information on the commands that are available
+
+Type 'quit()' to exit program
+Batch Mode
+
+
+mothur > set.current(fasta=16s.file_qc.trim.contigs.fasta,group=16s.file_qc.contigs.groups,processors=16)
+
+Using 16 processors.
+
+Current files saved by mothur:
+fasta=16s.file_qc.trim.contigs.fasta
+group=16s.file_qc.contigs.groups
+processors=16
+
+mothur > screen.seqs(fasta=current,group=current,maxambig=0,maxlength=350,minlength=300,maxhomop=6)
+Using 16s.file_qc.trim.contigs.fasta as input file for the fasta parameter.
+Using 16s.file_qc.contigs.groups as input file for the group parameter.
+
+Using 16 processors.
+
+Output File Names: 
+16s.file_qc.trim.contigs.good.fasta
+16s.file_qc.trim.contigs.bad.accnos
+16s.file_qc.contigs.good.groups
+
+
+It took 173 secs to screen 11674227 sequences.
+
+mothur > summary.seqs(fasta=current)
+Using 16s.file_qc.trim.contigs.good.fasta as input file for the fasta parameter.
+
+Using 16 processors.
+
+		Start	End	NBases	Ambigs	Polymer	NumSeqs
+Minimum:	1	300	300	0	3	1
+2.5%-tile:	1	306	306	0	4	253957
+25%-tile:	1	311	311	0	5	2539566
+Median: 	1	315	315	0	5	5079132
+75%-tile:	1	323	323	0	5	7618697
+97.5%-tile:	1	332	332	0	6	9904306
+Maximum:	1	350	350	0	6	10158262
+Mean:	1	317.039	317.039	0	4.93356
+# of Seqs:	10158262
+
+Output File Names: 
+16s.file_qc.trim.contigs.good.summary
+
+It took 43 secs to summarize 10158262 sequences.
+
+mothur > unique.seqs(fasta=current,name=current)
+Using 16s.file_qc.trim.contigs.good.fasta as input file for the fasta parameter.
+[WARNING]: no file was saved for name parameter.
+10158262	2145260
+
+Output File Names: 
+16s.file_qc.trim.contigs.good.names
+16s.file_qc.trim.contigs.good.unique.fasta
+
+
+mothur > summary.seqs(fasta=current)
+Using 16s.file_qc.trim.contigs.good.unique.fasta as input file for the fasta parameter.
+
+Using 16 processors.
+[WARNING]: This command can take a namefile and you did not provide one. The current namefile is 16s.file_qc.trim.contigs.good.names which seems to match 16s.file_qc.trim.contigs.good.unique.fasta.
+
+		Start	End	NBases	Ambigs	Polymer	NumSeqs
+Minimum:	1	300	300	0	3	1
+2.5%-tile:	1	306	306	0	4	53632
+25%-tile:	1	311	311	0	5	536316
+Median: 	1	316	316	0	5	1072631
+75%-tile:	1	324	324	0	5	1608946
+97.5%-tile:	1	333	333	0	6	2091629
+Maximum:	1	350	350	0	6	2145260
+Mean:	1	317.608	317.608	0	4.92659
+# of Seqs:	2145260
+
+Output File Names: 
+16s.file_qc.trim.contigs.good.unique.summary
+
+It took 11 secs to summarize 2145260 sequences.
+
+mothur > count.seqs(name=current,group=current)
+Using 16s.file_qc.contigs.good.groups as input file for the group parameter.
+Using 16s.file_qc.trim.contigs.good.names as input file for the name parameter.
+
+Using 16 processors.
+It took 128 secs to create a table for 10158262 sequences.
+
+
+Total number of sequences: 10158262
+
+Output File Names: 
+16s.file_qc.trim.contigs.good.count_table
+
+
+mothur > summary.seqs(fasta=current,count=current)
+Using 16s.file_qc.trim.contigs.good.count_table as input file for the count parameter.
+Using 16s.file_qc.trim.contigs.good.unique.fasta as input file for the fasta parameter.
+
+Using 16 processors.
+
+		Start	End	NBases	Ambigs	Polymer	NumSeqs
+Minimum:	1	300	300	0	3	1
+2.5%-tile:	1	306	306	0	4	253957
+25%-tile:	1	311	311	0	5	2539566
+Median: 	1	315	315	0	5	5079132
+75%-tile:	1	323	323	0	5	7618697
+97.5%-tile:	1	332	332	0	6	9904306
+Maximum:	1	350	350	0	6	10158262
+Mean:	1	317.039	317.039	0	4.93356
+# of unique seqs:	2145260
+total # of seqs:	10158262
+
+Output File Names: 
+16s.file_qc.trim.contigs.good.unique.summary
+
+It took 31 secs to summarize 10158262 sequences.
+
+mothur > align.seqs(fasta=current,reference=/home/sukmb347/sukmb347/Metagenome/db/silva.bacteria/silva.bacteria.pcr.fasta)
+Using 16s.file_qc.trim.contigs.good.unique.fasta as input file for the fasta parameter.
+
+Using 16 processors.
+
+Reading in the /home/sukmb347/sukmb347/Metagenome/db/silva.bacteria/silva.bacteria.pcr.fasta template sequences...	DONE.
+It took 2 to read  14956 sequences.
+Aligning sequences from 16s.file_qc.trim.contigs.good.unique.fasta ...
+Some of you sequences generated alignments that eliminated too many bases, a list is provided in 16s.file_qc.trim.contigs.good.unique.flip.accnos. If you set the flip parameter to true mothur will try aligning the reverse compliment as well.
+It took 561 secs to align 2145260 sequences.
+
+
+Output File Names: 
+16s.file_qc.trim.contigs.good.unique.align
+16s.file_qc.trim.contigs.good.unique.align.report
+16s.file_qc.trim.contigs.good.unique.flip.accnos
+
+
+mothur > summary.seqs(fasta=current,count=current)
+Using 16s.file_qc.trim.contigs.good.count_table as input file for the count parameter.
+Using 16s.file_qc.trim.contigs.good.unique.align as input file for the fasta parameter.
+
+Using 16 processors.
+
+		Start	End	NBases	Ambigs	Polymer	NumSeqs
+Minimum:	44	44	1	0	1	1
+2.5%-tile:	44	5333	306	0	4	253957
+25%-tile:	44	5333	311	0	5	2539566
+Median: 	44	5333	315	0	5	5079132
+75%-tile:	44	5333	323	0	5	7618697
+97.5%-tile:	85	5333	332	0	6	9904306
+Maximum:	5395	5395	350	0	6	10158262
+Mean:	46.9536	5332.75	316.515	0	4.93335
+# of unique seqs:	2145260
+total # of seqs:	10158262
+
+Output File Names: 
+16s.file_qc.trim.contigs.good.unique.summary
+
+It took 127 secs to summarize 10158262 sequences.
+
+mothur > get.current()
+
+Current files saved by mothur:
+fasta=16s.file_qc.trim.contigs.good.unique.align
+group=16s.file_qc.contigs.good.groups
+name=16s.file_qc.trim.contigs.good.names
+count=16s.file_qc.trim.contigs.good.count_table
+processors=16
+summary=16s.file_qc.trim.contigs.good.unique.summary
+
+Current working directory: /ifs/data/nfs_share/sukmb347/Metagenome/16s/all/last/
+
+mothur > screen.seqs(fasta=current,count=current,start=96,end=5333)
+Using 16s.file_qc.trim.contigs.good.count_table as input file for the count parameter.
+Using 16s.file_qc.trim.contigs.good.unique.align as input file for the fasta parameter.
+
+Using 16 processors.
+
+Output File Names: 
+16s.file_qc.trim.contigs.good.unique.good.align
+16s.file_qc.trim.contigs.good.unique.bad.accnos
+16s.file_qc.trim.contigs.good.good.count_table
+
+
+It took 551 secs to screen 2145260 sequences.
+
+mothur > summary.seqs(fasta=current,count=current)
+Using 16s.file_qc.trim.contigs.good.good.count_table as input file for the count parameter.
+Using 16s.file_qc.trim.contigs.good.unique.good.align as input file for the fasta parameter.
+
+Using 16 processors.
+
+		Start	End	NBases	Ambigs	Polymer	NumSeqs
+Minimum:	44	5333	265	0	3	1
+2.5%-tile:	44	5333	306	0	4	245817
+25%-tile:	44	5333	311	0	5	2458163
+Median: 	44	5333	315	0	5	4916326
+75%-tile:	44	5333	323	0	5	7374489
+97.5%-tile:	44	5333	332	0	6	9586835
+Maximum:	96	5395	350	0	6	9832651
+Mean:	44.5477	5333.18	316.537	0	4.93622
+# of unique seqs:	2023397
+total # of seqs:	9832651
+
+Output File Names: 
+16s.file_qc.trim.contigs.good.unique.good.summary
+
+It took 121 secs to summarize 9832651 sequences.
+
+mothur > filter.seqs(fasta=current,vertical=T,trump=.)
+Using 16s.file_qc.trim.contigs.good.unique.good.align as input file for the fasta parameter.
+
+Using 16 processors.
+Creating Filter... 
+
+
+Running Filter... 
+
+
+
+Length of filtered alignment: 959
+Number of columns removed: 4441
+Length of the original alignment: 5400
+Number of sequences used to construct filter: 2023397
+
+Output File Names: 
+16s.filter
+16s.file_qc.trim.contigs.good.unique.good.filter.fasta
+
+
+mothur > summary.seqs(fasta=current,count=current)
+Using 16s.file_qc.trim.contigs.good.good.count_table as input file for the count parameter.
+Using 16s.file_qc.trim.contigs.good.unique.good.filter.fasta as input file for the fasta parameter.
+
+Using 16 processors.
+
+		Start	End	NBases	Ambigs	Polymer	NumSeqs
+Minimum:	1	958	245	0	3	1
+2.5%-tile:	1	959	287	0	4	245817
+25%-tile:	1	959	292	0	5	2458163
+Median: 	1	959	296	0	5	4916326
+75%-tile:	1	959	304	0	5	7374489
+97.5%-tile:	1	959	313	0	6	9586835
+Maximum:	7	959	345	0	6	9832651
+Mean:	1.00057	959	297.782	0	4.9362
+# of unique seqs:	2023397
+total # of seqs:	9832651
+
+Output File Names: 
+16s.file_qc.trim.contigs.good.unique.good.filter.summary
+
+It took 44 secs to summarize 9832651 sequences.
+
+mothur > unique.seqs(fasta=current,count=current,name=current)
+Using 16s.file_qc.trim.contigs.good.good.count_table as input file for the count parameter.
+Using 16s.file_qc.trim.contigs.good.unique.good.filter.fasta as input file for the fasta parameter.
+Using 16s.file_qc.trim.contigs.good.names as input file for the name parameter.
+When executing a unique.seqs command you must enter ONLY ONE of the following: count or name.
+[ERROR]: did not complete unique.seqs.
+
+mothur > summary.seqs(fasta=current,count=current)
+Using 16s.file_qc.trim.contigs.good.good.count_table as input file for the count parameter.
+Using 16s.file_qc.trim.contigs.good.unique.good.filter.fasta as input file for the fasta parameter.
+
+Using 16 processors.
+
+		Start	End	NBases	Ambigs	Polymer	NumSeqs
+Minimum:	1	958	245	0	3	1
+2.5%-tile:	1	959	287	0	4	245817
+25%-tile:	1	959	292	0	5	2458163
+Median: 	1	959	296	0	5	4916326
+75%-tile:	1	959	304	0	5	7374489
+97.5%-tile:	1	959	313	0	6	9586835
+Maximum:	7	959	345	0	6	9832651
+Mean:	1.00057	959	297.782	0	4.9362
+# of unique seqs:	2023397
+total # of seqs:	9832651
+
+Output File Names: 
+16s.file_qc.trim.contigs.good.unique.good.filter.summary
+
+It took 31 secs to summarize 9832651 sequences.
+
+mothur > get.current()
+
+Current files saved by mothur:
+fasta=16s.file_qc.trim.contigs.good.unique.good.filter.fasta
+group=16s.file_qc.contigs.good.groups
+name=16s.file_qc.trim.contigs.good.names
+count=16s.file_qc.trim.contigs.good.good.count_table
+processors=16
+summary=16s.file_qc.trim.contigs.good.unique.good.filter.summary
+
+Current working directory: /ifs/data/nfs_share/sukmb347/Metagenome/16s/all/last/
+
+mothur > pre.cluster(fasta=current,count=current,diffs=2)
+Using 16s.file_qc.trim.contigs.good.good.count_table as input file for the count parameter.
+Using 16s.file_qc.trim.contigs.good.unique.good.filter.fasta as input file for the fasta parameter.
+
+Using 16 processors.
+
+Processing group 1917530FOC_G1:
+
+Using 16 processors.
+
+Processing group 3380854FOC_G3:
+
+Using 16 processors.
+
+Processing group 4275946FOC_G3:
+
+Using 16 processors.
+
+Processing group 5982711FOC_G2:
+
+Using 16 processors.
+
+Processing group 7618188FOC_G2:
+
+Using 16 processors.
+
+Processing group 8447711FOC_G3:
+
+Using 16 processors.
+
+Processing group 9856133FOC_G3:
+
+Using 16 processors.
+
+Processing group Sample_2045618SPC_THBS397_D4593-25_G1:
+
+Using 16 processors.
+
+Processing group Sample_2922917BSP_THBS42_D4547-43_G1:
+
+Using 16 processors.
+
+Processing group Sample_371472SPC_THBS922_D5364-80_G1:
+
+Using 16 processors.
+
+Processing group Sample_4401991SPC_THBS806_D4593-353_G1:
+
+Using 16 processors.
+
+Processing group Sample_5735862BSP_THBS183_D4547-144_G1:
+
+Using 16 processors.
+
+Processing group Sample_6806693SPC_THBS761_D4593-251_G1:
+
+Using 16 processors.
+
+Processing group Sample_7908562SPC_THBS682_D4593-253_G1:
+
+Using 16 processors.
+
+Processing group 117100FOC_G1:
+
+Using 16 processors.
+
+Processing group Sample_9119811SPC_THBS705_D4593-244_G1:
+7680	1527	6153
+Total number of sequences before pre.cluster was 7680.
+pre.cluster removed 6153 sequences.
+
+It took 1 secs to cluster 7680 sequences.
+
+Processing group Sample_2118154BSP_THBS237_D4547-259_G2:
+6327	1836	4491
+Total number of sequences before pre.cluster was 6327.
+pre.cluster removed 4491 sequences.
+
+6921	1774	5147
+Total number of sequences before pre.cluster was 6921.
+pre.cluster removed 5147 sequences.
+
+It took 2 secs to cluster 6327 sequences.
+
+Processing group Sample_2934239SPC_THBS413_D4593-62_G1:
+It took 2 secs to cluster 6921 sequences.
+
+Processing group Sample_4520107SPC_THBS791_D4593-363_G3:
+4278	1103	3175
+Total number of sequences before pre.cluster was 4278.
+pre.cluster removed 3175 sequences.
+
+It took 1 secs to cluster 4278 sequences.
+
+Processing group Sample_4532032SPC_THBS844_D5364-62_G3:
+7825	2400	5425
+Total number of sequences before pre.cluster was 7825.
+pre.cluster removed 5425 sequences.
+
+It took 3 secs to cluster 7825 sequences.
+
+Processing group Sample_5823374BSP_THBS71_D4547-75_G3:
+9190	2551	6639
+Total number of sequences before pre.cluster was 9190.
+pre.cluster removed 6639 sequences.
+
+It took 3 secs to cluster 9190 sequences.
+
+Processing group Sample_3764495SPC_3764495SPC_E01883-308_G1:
+9694	3279	6415
+Total number of sequences before pre.cluster was 9694.
+pre.cluster removed 6415 sequences.
+
+It took 5 secs to cluster 9694 sequences.
+
+Processing group 2045817FOC_G3:
+6778	2972	3806
+Total number of sequences before pre.cluster was 6778.
+pre.cluster removed 3806 sequences.
+
+10365	2550	7815
+Total number of sequences before pre.cluster was 10365.
+pre.cluster removed 7815 sequences.
+
+5613	2231	3382
+Total number of sequences before pre.cluster was 5613.
+pre.cluster removed 3382 sequences.
+
+It took 5 secs to cluster 6778 sequences.
+
+Processing group Sample_9126698SPC_THBS414_D4593-74_G1:
+It took 3 secs to cluster 10365 sequences.
+
+Processing group Sample_3087625SPC_THBS501_D4593-68_G1:
+It took 2 secs to cluster 5613 sequences.
+
+Processing group Sample_466598SPC_466598SPC_E01883-350_G1:
+6315	2765	3550
+Total number of sequences before pre.cluster was 6315.
+pre.cluster removed 3550 sequences.
+
+It took 3 secs to cluster 6315 sequences.
+
+Processing group Sample_3919154SPC_THBS648_D4593-188_G1:
+8266	4089	4177
+Total number of sequences before pre.cluster was 8266.
+pre.cluster removed 4177 sequences.
+
+It took 7 secs to cluster 8266 sequences.
+
+Processing group Sample_6809973BSP_THBS46_D4547-47_G2:
+9747	2443	7304
+Total number of sequences before pre.cluster was 9747.
+pre.cluster removed 7304 sequences.
+
+It took 3 secs to cluster 9747 sequences.
+
+Processing group Sample_9146707BSP_THBS16_D4547-16_G1:
+8630	4661	3969
+Total number of sequences before pre.cluster was 8630.
+pre.cluster removed 3969 sequences.
+
+It took 9 secs to cluster 8630 sequences.
+
+Processing group 8479903FOC_G3:
+7102	3323	3779
+Total number of sequences before pre.cluster was 7102.
+pre.cluster removed 3779 sequences.
+
+12709	3055	9654
+Total number of sequences before pre.cluster was 12709.
+pre.cluster removed 9654 sequences.
+
+10072	3864	6208
+Total number of sequences before pre.cluster was 10072.
+pre.cluster removed 6208 sequences.
+
+6725	2452	4273
+Total number of sequences before pre.cluster was 6725.
+pre.cluster removed 4273 sequences.
+
+It took 5 secs to cluster 12709 sequences.
+
+Processing group Sample_3144241BSP_THBS295_D4547-315_G3:
+It took 7 secs to cluster 10072 sequences.
+
+Processing group Sample_5898260BSP_THBS207_D4547-279_G1:
+It took 5 secs to cluster 7102 sequences.
+
+Processing group Sample_4878407SPC_THBS897_D4593-309_G1:
+It took 3 secs to cluster 6725 sequences.
+
+Processing group Sample_6821246SPC_6821246SPC_E01883-352_G1:
+9787	4878	4909
+Total number of sequences before pre.cluster was 9787.
+pre.cluster removed 4909 sequences.
+
+It took 12 secs to cluster 9787 sequences.
+
+Processing group Sample_8012602SPC_THBS782_D4593-350_G1:
+7379	3693	3686
+Total number of sequences before pre.cluster was 7379.
+pre.cluster removed 3686 sequences.
+
+It took 6 secs to cluster 7379 sequences.
+
+Processing group Sample_3920586SPC_3920586SPC_E01883-343_G1:
+7836	2670	5166
+Total number of sequences before pre.cluster was 7836.
+pre.cluster removed 5166 sequences.
+
+It took 3 secs to cluster 7836 sequences.
+
+Processing group Sample_4895461SPC_THBS635_D4593-127_G1:
+11205	5564	5641
+Total number of sequences before pre.cluster was 11205.
+pre.cluster removed 5641 sequences.
+
+It took 13 secs to cluster 11205 sequences.
+
+Processing group Sample_2138233SPC_2138233SPC_E01883-322_G1:
+7914	3178	4736
+Total number of sequences before pre.cluster was 7914.
+pre.cluster removed 4736 sequences.
+
+It took 4 secs to cluster 7914 sequences.
+
+Processing group Sample_6870766BSP_THBS162_D4547-177_G3:
+4743	2122	2621
+Total number of sequences before pre.cluster was 4743.
+pre.cluster removed 2621 sequences.
+
+It took 2 secs to cluster 4743 sequences.
+
+Processing group Sample_5010045SPC_THBS508_D4593-57_G1:
+12067	4907	7160
+Total number of sequences before pre.cluster was 12067.
+pre.cluster removed 7160 sequences.
+
+It took 11 secs to cluster 12067 sequences.
+
+Processing group 2088942FOC_G2:
+10626	6417	4209
+Total number of sequences before pre.cluster was 10626.
+pre.cluster removed 4209 sequences.
+
+9518	3489	6029
+Total number of sequences before pre.cluster was 9518.
+pre.cluster removed 6029 sequences.
+
+8294	2819	5475
+Total number of sequences before pre.cluster was 8294.
+pre.cluster removed 5475 sequences.
+
+It took 17 secs to cluster 10626 sequences.
+
+Processing group 3397708FOC_G2:
+It took 6 secs to cluster 9518 sequences.
+
+Processing group Sample_591527SPC_THBS434_D4593-29_G1:
+It took 4 secs to cluster 8294 sequences.
+
+Processing group Sample_8231776SPC_8231776SPC_E01883-305_G3:
+6226	2065	4161
+Total number of sequences before pre.cluster was 6226.
+pre.cluster removed 4161 sequences.
+
+It took 2 secs to cluster 6226 sequences.
+
+Processing group Sample_6994499SPC_THBS505_D4593-21_G1:
+6423	1669	4754
+Total number of sequences before pre.cluster was 6423.
+pre.cluster removed 4754 sequences.
+
+8249	3570	4679
+Total number of sequences before pre.cluster was 8249.
+pre.cluster removed 4679 sequences.
+
+It took 2 secs to cluster 6423 sequences.
+
+Processing group Sample_714544SPC_THBS519_D4593-94_G1:
+It took 6 secs to cluster 8249 sequences.
+
+Processing group Sample_3926931BSP_THBS289_D4547-338_G1:
+8465	3257	5208
+Total number of sequences before pre.cluster was 8465.
+pre.cluster removed 5208 sequences.
+
+It took 4 secs to cluster 8465 sequences.
+
+Processing group Sample_2369109SPC_THBS763_D4593-275_G1:
+6579	2876	3703
+Total number of sequences before pre.cluster was 6579.
+pre.cluster removed 3703 sequences.
+
+It took 3 secs to cluster 6579 sequences.
+
+Processing group Sample_8305963SPC_THBS787_D4593-315_G1:
+11583	3240	8343
+Total number of sequences before pre.cluster was 11583.
+pre.cluster removed 8343 sequences.
+
+It took 5 secs to cluster 11583 sequences.
+
+Processing group Sample_5046005BSP_THBS58_D4547-61_G2:
+9044	2267	6777
+Total number of sequences before pre.cluster was 9044.
+pre.cluster removed 6777 sequences.
+
+9135	3067	6068
+Total number of sequences before pre.cluster was 9135.
+pre.cluster removed 6068 sequences.
+
+5179	1286	3893
+Total number of sequences before pre.cluster was 5179.
+pre.cluster removed 3893 sequences.
+
+It took 1 secs to cluster 5179 sequences.
+
+Processing group Sample_8537584SPC_THBS786_D4593-303_G1:
+It took 4 secs to cluster 9135 sequences.
+
+Processing group Sample_6044351SPC_THBS678_D4593-205_G1:
+It took 2 secs to cluster 9044 sequences.
+
+Processing group Sample_7273219BSP_THBS190_D4547-265_G2:
+4478	1044	3434
+Total number of sequences before pre.cluster was 4478.
+pre.cluster removed 3434 sequences.
+
+11988	5477	6511
+Total number of sequences before pre.cluster was 11988.
+pre.cluster removed 6511 sequences.
+
+It took 1 secs to cluster 4478 sequences.
+
+Processing group Sample_8546583SPC_THBS683_D4593-265_G1:
+11408	5130	6278
+Total number of sequences before pre.cluster was 11408.
+pre.cluster removed 6278 sequences.
+
+It took 13 secs to cluster 11988 sequences.
+
+Processing group Sample_9237975SPC_THBS366_D4547-312_G1:
+It took 11 secs to cluster 11408 sequences.
+
+Processing group Sample_3165836SPC_THBS429_D4593-64_G1:
+7633	4332	3301
+Total number of sequences before pre.cluster was 7633.
+pre.cluster removed 3301 sequences.
+
+7849	1764	6085
+Total number of sequences before pre.cluster was 7849.
+pre.cluster removed 6085 sequences.
+
+It took 2 secs to cluster 7849 sequences.
+
+Processing group Sample_3167296BSP_THBS219_D4547-233_G1:
+It took 8 secs to cluster 7633 sequences.
+
+Processing group 2163288FOC_G1:
+6077	2624	3453
+Total number of sequences before pre.cluster was 6077.
+pre.cluster removed 3453 sequences.
+
+It took 3 secs to cluster 6077 sequences.
+
+Processing group Sample_9276111BSP_THBS249_D4547-213_G2:
+11928	3196	8732
+Total number of sequences before pre.cluster was 11928.
+pre.cluster removed 8732 sequences.
+
+It took 5 secs to cluster 11928 sequences.
+
+Processing group Sample_5056092SPC_THBS816_D4593-378_G1:
+15525	6073	9452
+Total number of sequences before pre.cluster was 15525.
+pre.cluster removed 9452 sequences.
+
+It took 16 secs to cluster 15525 sequences.
+
+Processing group 8640899FOC_G1:
+10360	4502	5858
+Total number of sequences before pre.cluster was 10360.
+pre.cluster removed 5858 sequences.
+
+It took 9 secs to cluster 10360 sequences.
+
+Processing group Sample_3934026BSP_THBS73_D4547-77_G2:
+9687	4348	5339
+Total number of sequences before pre.cluster was 9687.
+pre.cluster removed 5339 sequences.
+
+6563	2216	4347
+Total number of sequences before pre.cluster was 6563.
+pre.cluster removed 4347 sequences.
+
+It took 9 secs to cluster 9687 sequences.
+
+Processing group Sample_2402503SPC_THBS753_D4593-250_G1:
+It took 2 secs to cluster 6563 sequences.
+
+Processing group Sample_5087567SPC_THBS872_D5364-18_G1:
+11611	5152	6459
+Total number of sequences before pre.cluster was 11611.
+pre.cluster removed 6459 sequences.
+
+It took 11 secs to cluster 11611 sequences.
+
+Processing group 3474706FOC_G1:
+10089	4127	5962
+Total number of sequences before pre.cluster was 10089.
+pre.cluster removed 5962 sequences.
+
+It took 8 secs to cluster 10089 sequences.
+
+Processing group Sample_7393966SPC_THBS531_D4593-12_G3:
+8477	4321	4156
+Total number of sequences before pre.cluster was 8477.
+pre.cluster removed 4156 sequences.
+
+It took 8 secs to cluster 8477 sequences.
+
+Processing group Sample_6188164BSP_THBS178_D4547-179_G2:
+8492	3503	4989
+Total number of sequences before pre.cluster was 8492.
+pre.cluster removed 4989 sequences.
+
+It took 5 secs to cluster 8492 sequences.
+
+Processing group Sample_320241SPC_THBS409_D4593-38_G1:
+7153	1717	5436
+Total number of sequences before pre.cluster was 7153.
+pre.cluster removed 5436 sequences.
+
+It took 1 secs to cluster 7153 sequences.
+
+Processing group Sample_621624BSP_THBS36_D4547-37_G1:
+7938	2133	5805
+Total number of sequences before pre.cluster was 7938.
+pre.cluster removed 5805 sequences.
+
+It took 2 secs to cluster 7938 sequences.
+
+Processing group Sample_7501555SPC_SPC59532_E0599-159_G1:
+9684	3796	5888
+Total number of sequences before pre.cluster was 9684.
+pre.cluster removed 5888 sequences.
+
+It took 6 secs to cluster 9684 sequences.
+
+Processing group Sample_9483530SPC_THBS710_D4593-209_G1:
+7965	3681	4284
+Total number of sequences before pre.cluster was 7965.
+pre.cluster removed 4284 sequences.
+
+It took 5 secs to cluster 7965 sequences.
+
+Processing group Sample_4004990SPC_THBS857_D5364-28_G1:
+9227	3465	5762
+Total number of sequences before pre.cluster was 9227.
+pre.cluster removed 5762 sequences.
+
+It took 5 secs to cluster 9227 sequences.
+
+Processing group Sample_5090939SPC_THBS513_D4593-22_G1:
+11567	3159	8408
+Total number of sequences before pre.cluster was 11567.
+pre.cluster removed 8408 sequences.
+
+It took 5 secs to cluster 11567 sequences.
+
+Processing group Sample_3332717SPC_SPC59597_E0599-161_G1:
+8133	1670	6463
+Total number of sequences before pre.cluster was 8133.
+pre.cluster removed 6463 sequences.
+
+It took 1 secs to cluster 8133 sequences.
+
+Processing group Sample_3385594BSP_THBS321_D4547-342_G2:
+6620	3291	3329
+Total number of sequences before pre.cluster was 6620.
+pre.cluster removed 3329 sequences.
+
+It took 5 secs to cluster 6620 sequences.
+
+Processing group Sample_9699186SPC_THBS798_D4593-352_G1:
+9130	2422	6708
+Total number of sequences before pre.cluster was 9130.
+pre.cluster removed 6708 sequences.
+
+It took 4 secs to cluster 9130 sequences.
+
+Processing group Sample_5094638BSP_THBS169_D4547-166_G1:
+8779	4775	4004
+Total number of sequences before pre.cluster was 8779.
+pre.cluster removed 4004 sequences.
+
+11753	5980	5773
+Total number of sequences before pre.cluster was 11753.
+pre.cluster removed 5773 sequences.
+
+It took 9 secs to cluster 8779 sequences.
+
+Processing group Sample_2449434SPC_THBS780_D4593-326_G1:
+It took 15 secs to cluster 11753 sequences.
+
+Processing group Sample_862642SPC_THBS507_D4593-45_G1:
+6009	1493	4516
+Total number of sequences before pre.cluster was 6009.
+pre.cluster removed 4516 sequences.
+
+It took 1 secs to cluster 6009 sequences.
+
+Processing group Sample_5222912SPC_SPC59396_E0599-143_G1:
+22222	9185	13037
+Total number of sequences before pre.cluster was 22222.
+pre.cluster removed 13037 sequences.
+
+It took 37 secs to cluster 22222 sequences.
+
+Processing group 9893030FOC_G2:
+8610	2416	6194
+Total number of sequences before pre.cluster was 8610.
+pre.cluster removed 6194 sequences.
+
+It took 2 secs to cluster 8610 sequences.
+
+Processing group Sample_9726339SPC_9726339SPC_E01883-345_G1:
+6183	1909	4274
+Total number of sequences before pre.cluster was 6183.
+pre.cluster removed 4274 sequences.
+
+It took 2 secs to cluster 6183 sequences.
+
+Processing group Sample_2539101SPC_THBS452_D4593-19_G1:
+8829	2255	6574
+Total number of sequences before pre.cluster was 8829.
+pre.cluster removed 6574 sequences.
+
+9649	4275	5374
+Total number of sequences before pre.cluster was 9649.
+pre.cluster removed 5374 sequences.
+
+13886	5805	8081
+Total number of sequences before pre.cluster was 13886.
+pre.cluster removed 8081 sequences.
+
+It took 2 secs to cluster 8829 sequences.
+
+Processing group Sample_2548180SPC_THBS709_D4593-197_G1:
+11390	2998	8392
+Total number of sequences before pre.cluster was 11390.
+pre.cluster removed 8392 sequences.
+
+It took 8 secs to cluster 9649 sequences.
+
+Processing group Sample_4101096BSP_THBS210_D4547-220_G2:
+It took 5 secs to cluster 11390 sequences.
+
+Processing group Sample_8905301SPC_THBS713_D4593-245_G1:
+It took 16 secs to cluster 13886 sequences.
+
+Processing group 8774476FOC_G3:
+22683	9538	13145
+Total number of sequences before pre.cluster was 22683.
+pre.cluster removed 13145 sequences.
+
+It took 41 secs to cluster 22683 sequences.
+
+Processing group 1285301FOC_G1:
+11938	5294	6644
+Total number of sequences before pre.cluster was 11938.
+pre.cluster removed 6644 sequences.
+
+It took 13 secs to cluster 11938 sequences.
+
+Processing group Sample_6429553SPC_THBS435_D4593-41_G3:
+5015	1802	3213
+Total number of sequences before pre.cluster was 5015.
+pre.cluster removed 3213 sequences.
+
+It took 2 secs to cluster 5015 sequences.
+
+Processing group Sample_4139766BSP_THBS234_D4547-223_G1:
+9302	3325	5977
+Total number of sequences before pre.cluster was 9302.
+pre.cluster removed 5977 sequences.
+
+It took 5 secs to cluster 9302 sequences.
+
+Processing group Sample_9740781SPC_THBS390_D4422-91_G1:
+15085	5923	9162
+Total number of sequences before pre.cluster was 15085.
+pre.cluster removed 9162 sequences.
+
+It took 16 secs to cluster 15085 sequences.
+
+Processing group 3498236FOC_G2:
+23849	9758	14091
+Total number of sequences before pre.cluster was 23849.
+pre.cluster removed 14091 sequences.
+
+It took 43 secs to cluster 23849 sequences.
+
+Processing group 6049582FOC_G2:
+6350	2681	3669
+Total number of sequences before pre.cluster was 6350.
+pre.cluster removed 3669 sequences.
+
+11750	4731	7019
+Total number of sequences before pre.cluster was 11750.
+pre.cluster removed 7019 sequences.
+
+It took 4 secs to cluster 6350 sequences.
+
+Processing group Sample_2696604BSP_THBS110_D4547-135_G2:
+It took 10 secs to cluster 11750 sequences.
+
+Processing group Sample_3532652BSP_THBS53_D4547-55_G2:
+5962	3311	2651
+Total number of sequences before pre.cluster was 5962.
+pre.cluster removed 2651 sequences.
+
+It took 3 secs to cluster 5962 sequences.
+
+Processing group Sample_8941899SPC_8941899SPC_E01883-315_G2:
+7127	2720	4407
+Total number of sequences before pre.cluster was 7127.
+pre.cluster removed 4407 sequences.
+
+It took 4 secs to cluster 7127 sequences.
+
+Processing group 1329026FOC_G3:
+6753	2023	4730
+Total number of sequences before pre.cluster was 6753.
+pre.cluster removed 4730 sequences.
+
+It took 2 secs to cluster 6753 sequences.
+
+Processing group Sample_272186BSP_THBS164_D4547-106_G3:
+6401	2757	3644
+Total number of sequences before pre.cluster was 6401.
+pre.cluster removed 3644 sequences.
+
+It took 3 secs to cluster 6401 sequences.
+
+Processing group Sample_3552749SPC_THBS480_D4593-8_G1:
+10529	3631	6898
+Total number of sequences before pre.cluster was 10529.
+pre.cluster removed 6898 sequences.
+
+8025	2824	5201
+Total number of sequences before pre.cluster was 8025.
+pre.cluster removed 5201 sequences.
+
+It took 4 secs to cluster 8025 sequences.
+
+Processing group Sample_8944724SPC_THBS726_D4593-211_G1:
+It took 6 secs to cluster 10529 sequences.
+
+Processing group Sample_644613SPC_THBS388_D4422-89_G1:
+7824	1854	5970
+Total number of sequences before pre.cluster was 7824.
+pre.cluster removed 5970 sequences.
+
+It took 2 secs to cluster 7824 sequences.
+
+Processing group Sample_3608990BSP_THBS115_D4547-100_G2:
+6937	2848	4089
+Total number of sequences before pre.cluster was 6937.
+pre.cluster removed 4089 sequences.
+
+It took 3 secs to cluster 6937 sequences.
+
+Processing group Sample_2723083BSP_THBS102_D4547-134_G1:
+6668	3237	3431
+Total number of sequences before pre.cluster was 6668.
+pre.cluster removed 3431 sequences.
+
+It took 4 secs to cluster 6668 sequences.
+
+Processing group 1359893FOC_G3:
+9656	4256	5400
+Total number of sequences before pre.cluster was 9656.
+pre.cluster removed 5400 sequences.
+
+It took 8 secs to cluster 9656 sequences.
+
+Processing group Sample_4155221SPC_THBS734_D4593-212_G1:
+10303	4613	5690
+Total number of sequences before pre.cluster was 10303.
+pre.cluster removed 5690 sequences.
+
+It took 9 secs to cluster 10303 sequences.
+
+Processing group 8775809FOC_G3:
+25194	10330	14864
+Total number of sequences before pre.cluster was 25194.
+pre.cluster removed 14864 sequences.
+
+It took 52 secs to cluster 25194 sequences.
+
+Processing group 4296999FOC_G1:
+6731	2507	4224
+Total number of sequences before pre.cluster was 6731.
+pre.cluster removed 4224 sequences.
+
+It took 3 secs to cluster 6731 sequences.
+
+Processing group Sample_2793875BSP_THBS262_D4547-274_G2:
+6004	3062	2942
+Total number of sequences before pre.cluster was 6004.
+pre.cluster removed 2942 sequences.
+
+It took 4 secs to cluster 6004 sequences.
+
+Processing group Sample_3627010SPC_THBS712_D4593-233_G1:
+6756	1485	5271
+Total number of sequences before pre.cluster was 6756.
+pre.cluster removed 5271 sequences.
+
+It took 1 secs to cluster 6756 sequences.
+
+Processing group Sample_2850873SPC_THBS893_D5364-68_G1:
+25345	4794	20551
+Total number of sequences before pre.cluster was 25345.
+pre.cluster removed 20551 sequences.
+
+It took 12 secs to cluster 25345 sequences.
+
+Processing group Sample_9791476SPC_THBS776_D4593-373_G1:
+6193	3289	2904
+Total number of sequences before pre.cluster was 6193.
+pre.cluster removed 2904 sequences.
+
+It took 4 secs to cluster 6193 sequences.
+
+Processing group Sample_4233081SPC_THBS855_D5364-4_G3:
+12309	5119	7190
+Total number of sequences before pre.cluster was 12309.
+pre.cluster removed 7190 sequences.
+
+It took 12 secs to cluster 12309 sequences.
+
+Processing group 3523114FOC_G1:
+6551	2364	4187
+Total number of sequences before pre.cluster was 6551.
+pre.cluster removed 4187 sequences.
+
+It took 2 secs to cluster 6551 sequences.
+
+Processing group Sample_367015BSP_THBS301_D4547-292_G2:
+7208	2172	5036
+Total number of sequences before pre.cluster was 7208.
+pre.cluster removed 5036 sequences.
+
+It took 2 secs to cluster 7208 sequences.
+
+Processing group Sample_2897917BSP_THBS222_D4547-269_G1:
+6583	1573	5010
+Total number of sequences before pre.cluster was 6583.
+pre.cluster removed 5010 sequences.
+
+15799	8241	7558
+Total number of sequences before pre.cluster was 15799.
+pre.cluster removed 7558 sequences.
+
+It took 2 secs to cluster 6583 sequences.
+
+Processing group Sample_4243455BSP_THBS15_D4547-15_G2:
+It took 33 secs to cluster 15799 sequences.
+
+Processing group 2364211FOC_G1:
+6994	2219	4775
+Total number of sequences before pre.cluster was 6994.
+pre.cluster removed 4775 sequences.
+
+It took 2 secs to cluster 6994 sequences.
+
+Processing group Sample_985391BSP_THBS8_D4547-8_G1:
+22448	4074	18374
+Total number of sequences before pre.cluster was 22448.
+pre.cluster removed 18374 sequences.
+
+It took 9 secs to cluster 22448 sequences.
+
+Processing group Sample_6505890SPC_THBS616_D4593-184_G1:
+8547	4709	3838
+Total number of sequences before pre.cluster was 8547.
+pre.cluster removed 3838 sequences.
+
+It took 10 secs to cluster 8547 sequences.
+
+Processing group Sample_89452SPC_THBS758_D4593-215_G1:
+7023	2481	4542
+Total number of sequences before pre.cluster was 7023.
+pre.cluster removed 4542 sequences.
+
+It took 3 secs to cluster 7023 sequences.
+20314	8156	12158
+Total number of sequences before pre.cluster was 20314.
+pre.cluster removed 12158 sequences.
+
+15341	7234	8107
+Total number of sequences before pre.cluster was 15341.
+pre.cluster removed 8107 sequences.
+
+It took 29 secs to cluster 20314 sequences.
+
+Processing group Sample_7562873SPC_THBS742_D4593-213_G1:
+It took 22 secs to cluster 15341 sequences.
+
+Processing group Sample_532352SPC_THBS638_D4593-163_G1:
+8998	5028	3970
+Total number of sequences before pre.cluster was 8998.
+pre.cluster removed 3970 sequences.
+
+It took 10 secs to cluster 8998 sequences.
+
+Processing group 1431465FOC_G3:
+6576	2872	3704
+Total number of sequences before pre.cluster was 6576.
+pre.cluster removed 3704 sequences.
+
+It took 4 secs to cluster 6576 sequences.
+
+Processing group Sample_9933047BSP_THBS299_D4547-363_G2:
+5680	1327	4353
+Total number of sequences before pre.cluster was 5680.
+pre.cluster removed 4353 sequences.
+
+It took 0 secs to cluster 5680 sequences.
+
+Processing group Sample_9950116SPC_THBS389_D4422-90_G1:
+11198	4605	6593
+Total number of sequences before pre.cluster was 11198.
+pre.cluster removed 6593 sequences.
+
+It took 10 secs to cluster 11198 sequences.
+
+Processing group 4321404FOC_G3:
+14284	6562	7722
+Total number of sequences before pre.cluster was 14284.
+pre.cluster removed 7722 sequences.
+
+It took 18 secs to cluster 14284 sequences.
+
+Processing group 6147792FOC_G3:
+10025	3129	6896
+Total number of sequences before pre.cluster was 10025.
+pre.cluster removed 6896 sequences.
+
+It took 5 secs to cluster 10025 sequences.
+
+Processing group Sample_6553216BSP_THBS128_D4547-149_G1:
+8386	3828	4558
+Total number of sequences before pre.cluster was 8386.
+pre.cluster removed 4558 sequences.
+
+It took 6 secs to cluster 8386 sequences.
+
+Processing group Sample_4261013BSP_THBS244_D4547-248_G2:
+6292	3006	3286
+Total number of sequences before pre.cluster was 6292.
+pre.cluster removed 3286 sequences.
+
+It took 4 secs to cluster 6292 sequences.
+
+Processing group Sample_7661337BSP_THBS206_D4547-267_G2:
+7472	3216	4256
+Total number of sequences before pre.cluster was 7472.
+pre.cluster removed 4256 sequences.
+
+It took 4 secs to cluster 7472 sequences.
+6952	2245	4707
+Total number of sequences before pre.cluster was 6952.
+pre.cluster removed 4707 sequences.
+
+It took 2 secs to cluster 6952 sequences.
+
+Processing group Sample_4387847SPC_THBS868_D5364-65_G1:
+6988	2944	4044
+Total number of sequences before pre.cluster was 6988.
+pre.cluster removed 4044 sequences.
+
+It took 3 secs to cluster 6988 sequences.
+
+Processing group Sample_6678552BSP_THBS194_D4547-218_G1:
+11735	5421	6314
+Total number of sequences before pre.cluster was 11735.
+pre.cluster removed 6314 sequences.
+
+It took 12 secs to cluster 11735 sequences.
+15594	6260	9334
+Total number of sequences before pre.cluster was 15594.
+pre.cluster removed 9334 sequences.
+
+It took 18 secs to cluster 15594 sequences.
+
+Processing group 8849442FOC_G1:
+19769	8768	11001
+Total number of sequences before pre.cluster was 19769.
+pre.cluster removed 11001 sequences.
+
+It took 32 secs to cluster 19769 sequences.
+
+Processing group 9951428FOC_G2:
+4876	1670	3206
+Total number of sequences before pre.cluster was 4876.
+pre.cluster removed 3206 sequences.
+
+It took 1 secs to cluster 4876 sequences.
+
+Processing group 9982892FOC_G1:
+11983	5870	6113
+Total number of sequences before pre.cluster was 11983.
+pre.cluster removed 6113 sequences.
+
+It took 13 secs to cluster 11983 sequences.
+
+Processing group Sample_9063256SPC_THBS437_D4593-65_G3:
+10271	5198	5073
+Total number of sequences before pre.cluster was 10271.
+pre.cluster removed 5073 sequences.
+
+It took 11 secs to cluster 10271 sequences.
+
+Processing group 6154242FOC_G3:
+9640	4233	5407
+Total number of sequences before pre.cluster was 9640.
+pre.cluster removed 5407 sequences.
+
+It took 8 secs to cluster 9640 sequences.
+
+Processing group Sample_6695475SPC_THBS926_D5364-33_G1:
+10580	5391	5189
+Total number of sequences before pre.cluster was 10580.
+pre.cluster removed 5189 sequences.
+
+It took 12 secs to cluster 10580 sequences.
+
+Processing group 4465429FOC_G3:
+9444	2508	6936
+Total number of sequences before pre.cluster was 9444.
+pre.cluster removed 6936 sequences.
+
+It took 3 secs to cluster 9444 sequences.
+
+Processing group Sample_9067417BSP_THBS345_D4547-345_G2:
+13232	5374	7858
+Total number of sequences before pre.cluster was 13232.
+pre.cluster removed 7858 sequences.
+
+It took 11 secs to cluster 13232 sequences.
+
+Processing group Sample_7706494BSP_THBS200_D4547-195_G1:
+11948	5134	6814
+Total number of sequences before pre.cluster was 11948.
+pre.cluster removed 6814 sequences.
+
+It took 12 secs to cluster 11948 sequences.
+6164	2230	3934
+Total number of sequences before pre.cluster was 6164.
+pre.cluster removed 3934 sequences.
+
+It took 2 secs to cluster 6164 sequences.
+
+Processing group Sample_783078BSP_THBS296_D4547-327_G1:
+8781	4726	4055
+Total number of sequences before pre.cluster was 8781.
+pre.cluster removed 4055 sequences.
+
+It took 9 secs to cluster 8781 sequences.
+
+Processing group 6309753FOC_G2:
+7083	3217	3866
+Total number of sequences before pre.cluster was 7083.
+pre.cluster removed 3866 sequences.
+
+It took 5 secs to cluster 7083 sequences.
+
+Processing group Sample_7866474SPC_THBS378_D4422-78_G1:
+10637	4430	6207
+Total number of sequences before pre.cluster was 10637.
+pre.cluster removed 6207 sequences.
+
+It took 8 secs to cluster 10637 sequences.
+
+Processing group Sample_6756482BSP_THBS151_D4547-140_G3:
+9897	4309	5588
+Total number of sequences before pre.cluster was 9897.
+pre.cluster removed 5588 sequences.
+
+It took 8 secs to cluster 9897 sequences.
+
+Processing group Sample_9100691SPC_THBS415_D4593-86_G1:
+9390	2269	7121
+Total number of sequences before pre.cluster was 9390.
+pre.cluster removed 7121 sequences.
+
+It took 2 secs to cluster 9390 sequences.
+14668	6258	8410
+Total number of sequences before pre.cluster was 14668.
+pre.cluster removed 8410 sequences.
+
+It took 17 secs to cluster 14668 sequences.
+
+Processing group Sample_1165027BSP_THBS63_D4547-66_G3:
+4621	1900	2721
+Total number of sequences before pre.cluster was 4621.
+pre.cluster removed 2721 sequences.
+
+It took 2 secs to cluster 4621 sequences.
+
+Processing group Sample_1220306BSP_THBS1_D4547-1_G1:
+8989	4443	4546
+Total number of sequences before pre.cluster was 8989.
+pre.cluster removed 4546 sequences.
+
+It took 8 secs to cluster 8989 sequences.
+7068	2498	4570
+Total number of sequences before pre.cluster was 7068.
+pre.cluster removed 4570 sequences.
+
+It took 2 secs to cluster 7068 sequences.
+
+Processing group Sample_128198BSP_THBS189_D4547-253_G1:

@@ -2,21 +2,16 @@
 
 % Use adjustwidth environment to exceed column width (see example table in text)
 \usepackage{changepage}
-
 % Use Unicode characters when possible
 \usepackage[utf8]{inputenc}
-
 % fixltx2e package for \textsubscript
 \usepackage{fixltx2e}
-
-% amsmath and amssymb packages, useful for mathematical formulas and symbols
-\usepackage{amsmath,amssymb}
-
 % cite package, to clean up citations in the main text. Do not remove.
 \usepackage{cite}
-
 % Use nameref to cite supporting information files (see Supporting Information section for more info)
 \usepackage{nameref,hyperref}
+% amsmath and amssymb packages, useful for mathematical formulas and symbols
+\usepackage{amsmath,amsfonts,amssymb}
 
 \begin{document}
 \vspace*{0.35in}
@@ -24,7 +19,7 @@
 % Title must be 150 characters or less
 \begin{flushleft}
 {\Large
-\textbf\newline{\textbf{Microbial co-ocurrences - microbial correlation Networks - Time Series - Human Gut - Survey genomic data 16S}}
+\textbf\newline{\textbf{Aging - human gut 16S - microbial correlation Networks - microbial co-occurrences - time series (relative to Aging) - functional profiles from correlates}}
 }
 \newline
 % Insert Author names, affiliations and corresponding author email.
@@ -44,34 +39,36 @@
 % Please keep the abstract below 300 words
 \section*{Abstract}
 Bla bla bla
-
-
+\\
 \section*{Introduction}
-
-\section*{Materials and Methods}
 Our aim is to identify a correlation between species withing ecological communities and their dynamics over time. 
 \\
+\section*{Materials and Methods}
 \subsection*{Counts and taxonomical assignment of OTU}
-OTU counts and their taxonomical classification from 244 unrelated individuals were obtained using "Mothur - Lotus" software (ref). Reads were classified using Silva 16S rRNA reference database. 
+Stool samples from 244 unrelated individuals were processed using... Lab methods. using "Mothur - Lotus" software (ref).
+\\\\
+16S rRNA data was processed using the software Mothur v 1.34. (Schloss et al., 2009), to minimize effects of sequencing errors, we trimmed sequences that contained more than one undetermined nucleotide (N), reads that had more than eight homopolymers and those with the Q-score average below 25 in a window of 50 bp. Trimmed reads were aligned using the Needleman-Wunch algorithm and SILVA SEED reference alignment database (Schloss, 2009). To maximize the number of sequences that overlap over the longest span, an algorithm that allows keeping sequence that started after the position that 95\% of the sequences was used. A pre-clustering step (Huse et al., 2010) and the Uchime algorithm in de novo mode (http://drive5.com/uchime)  was included to reduce chimeras and sequencing noise. was used to detect  (Gomez-Alvarez et al., 2009) and subsequently remove them. Afterward, the sequences were classified using Wang method (Wang et al., 1999) against SILVA reference database with 1000 iterations. The high-quality sequences were clustered into OTUs using the average algorithm (Schloss, 2011) based on 3\% of dissimilarity cutoff.
 \\\\
 -Output: OTU counts
 \\
 \subsection*{Data treatment}
-The OTU counts are very sparse where zero values dominated most count values. We Assumed that nonsufficient sampling effort explains zero values, and that means zero values refer to unobserved values caused by the limited size of the sample. Under this assumption, we treated the zero values using the Bayesian-multiplicative approach (Pawlowsky-Glahn et. al. 2011-chap4).
+The OTU counts revealed a high diversity environment where most OTU appears in a few individuals with low abundance and zero values dominate most count values. It is thought that this phenomenon is explained by nonsufficient sampling effort which zero values refer to unobserved values caused by the limited size of the sample. 
+Additionally, this data structure comprises the relative abundance of the community components falling into special data class named as compositional data (Aitchison J 2003). Under the previous premises, the data was treated according to compositional techniques. These methods are based on the log-ratio methodology  (Pawlowsky-Glahn et. al. 2011), but log-ratio transformations require data with positive values. Therefore, for replacing the zero counts by a proper value, we managed the data using the Bayesian-multiplicative approach (Pawlowsky-Glahn et. al. 2011-chap4).
+\\\\
+A Bayesian estimation with Dirichlet distribution as a prior, $\theta=Dir(st)$ was used to replace the composition vector $x_{i}=(c_{i1}/N_{i},..,c_{ik}/N_{i})$ by the vector $r_{i}=(r_{i1},...,r_{ik})$ (Pawlowsky-Glahn et. al. 2011-chap4), where $N_{i}$ is the number of trials of the sample $i$ (relative to sample read counts), and the outcomes from each trial falls in any of  $k$ mutually exclusive categories (OTU), with $c_{ij}$ number of observations for category $j$, so then the transformed count $r_{ij}$ is denoted by
 \\
-\\
+\begin{equation}
 r_{ij}=\begin{cases}
-	(t_{ij}s_{i})/(N_{i}+s{i})&	\text{if} x_{ij}=0
-	x_{ij}=0(1-E)& \text{if} x_{ij}=0
-	\end{cases}
+	\hfil t_{ij}\cfrac{s_{i}}{N_{i}+s_{i}} & \text{if } x_{ij}=0,\\
+	x_{ij} \left( 1-\cfrac{s_{i}}{N_{i}+s_{i}}~\sum\limits_{k|x_{ik}=0} t_{ik}	\right) & \text{if } x_{ij}>0.
+	\end{cases}	
+\end{equation}
 \\
+$s_{i}$ and $t_{i}$ stands for prior total strength and expectation of the probability distribution, $t_{i}=(t_{i1},...,t_{ik})$, with $t_{ij} >0, \sum_{j}t_{ij} =1$ and $t_{i}$ belongs to the simplex $S^k$ (Aitchison J. 2003). In this study was used a uniform prior with strength based on square root Dirchlet model due to  $\sqrt{N_{i}} > k$ (Martin-Fernandez 2015), so then $s_{i}=\sqrt{N_{i}}$ and $t_{ij}=1/k$.
 \\
-\begin{gather}
-
-\end{gather}
-\\
-\subsection*{Microbial correlation network}
-Owing to sequencing depth the total read counts across samples were different. Therefore, the OTU counts are normalized by the total number of counts. The resulting proportions fall into the category of compositional data which has its particular geometrical and statistical properties (Pawlowsky-Glahn et. al. 2011).
+\subsection*{Microbial community analysis}
+The Inverse Simpson Index was used to estimate the OTU richness (other analyzes are coming).
+A Covariance matrix was calculated using SPIEC-EASI algorithm (Kurtz et al. 2015). 
 
 \begin{enumerate}
 \item{react}
