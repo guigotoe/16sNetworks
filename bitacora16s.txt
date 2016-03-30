@@ -4,12 +4,17 @@ Bitacora Metagenome Project 2015 - 16S data processing
 #	19.08.2015	#
 ########################
 
+#** for FoCus group 60-80b I used 7518466FOC1 instead of 7518466FOC as the study participant obtained a stool sample only at the second timepoint 
+# (I also marked this in the original list I provided) --> keep this in mind when requesting phenotypic data (ask explicitly for 7518466FOC1).
+#
+
 1) constructing input file for mothur
 # input.file -> tabular file: name\tFwdRead_R1\tRvrsRead_R2\n
 # G1 = 20-40_FOC
 # G2 = 40-60_FOC
 # G3 = 60-80_FOC
 # G4 = 80+_FOC
+# G5 = last50
 
 ls /home/torres/Documents/Projects/Metagenome/data/RawData/20-40_FOC/ | awk '{print $1"_G1\t/home/torres/Documents/Projects/Metagenome/data/RawData/20-40_FOC/"$1"/"$1\
 "_batch-1_1.fastq.gz\t/home/torres/Documents/Projects/Metagenome/data/RawData/20-40_FOC/"$1"/"$1"_batch-1_2.fastq.gz"}' > g1.txt
@@ -32,16 +37,25 @@ ls /home/torres/Documents/Projects/Metagenome/data/RawData/60-80a_BSPSPC/ | awk 
 ls /home/torres/Documents/Projects/Metagenome/data/RawData/60-80b_FOC/ | awk '{print $1"_G3\t/home/torres/Documents/Projects/Metagenome/data/RawData/60-80b_FOC/"$1"/"$1\
 "_batch-1_1.fastq.gz\t/home/torres/Documents/Projects/Metagenome/data/RawData/60-80b_FOC/"$1"/"$1"_batch-1_2.fastq.gz"}' > g3b.txt
 
-ls /home/torres/Documents/Projects/Metagenome/data/RawData/60-80b_BSPSPC/ | awk '{print $1"_G1\t/home/torres/Documents/Projects/Metagenome/data/RawData/60-80b_BSPSPC/"$1"/"$1\
+ls /home/torres/Documents/Projects/Metagenome/data/RawData/60-80b_BSPSPC/ | awk '{print $1"_G3\t/home/torres/Documents/Projects/Metagenome/data/RawData/60-80b_BSPSPC/"$1"/"$1\
 "_1.fastq.gz\t/home/torres/Documents/Projects/Metagenome/data/RawData/60-80b_BSPSPC/"$1"/"$1"_2.fastq.gz"}' > b3b.txt
 
 ls /home/torres/Documents/Projects/Metagenome/data/RawData/80+_FOC/ | awk '{print $1"_G4\t/home/torres/Documents/Projects/Metagenome/data/RawData/80+_FOC/"$1"/"$1\
 "_batch-1_1.fastq.gz\t/home/torres/Documents/Projects/Metagenome/data/RawData/80+_FOC/"$1"/"$1"_batch-1_2.fastq.gz"}' > g4.txt
 
-ls /home/torres/Documents/Projects/Metagenome/data/RawData/80+_BSPSPC/ | awk '{print $1"_G1\t/home/torres/Documents/Projects/Metagenome/data/RawData/80+_BSPSPC/"$1"/"$1\
+ls /home/torres/Documents/Projects/Metagenome/data/RawData/80+_BSPSPC/ | awk '{print $1"_G4\t/home/torres/Documents/Projects/Metagenome/data/RawData/80+_BSPSPC/"$1"/"$1\
 "_1.fastq.gz\t/home/torres/Documents/Projects/Metagenome/data/RawData/80+_BSPSPC/"$1"/"$1"_2.fastq.gz"}' > b4.txt
 
+awk '{print $2"_G4\t/home/torres/Documents/Projects/Metagenome/data/RawData/last50/Sample_"$8"/"$8\
+"_"$11"-"$12"_L001_R1_001.fastq.gz\t/home/torres/Documents/Projects/Metagenome/data/RawData/last50/Sample_"$8"/"$8\
+"_"$11"-"$12"_L001_R2_001.fastq.gz"}' /home/torres/Documents/Projects/Metagenome/data/RawData/last50/guide.txt > g5.txt
+
+# manualy check on g5 to correct _Gx
+
 cat *.txt > 16s.file
+
+After some trimming with excel we get 16Sfiles.txt
+
 
 Mothur Commands:
 
@@ -59,7 +73,7 @@ make.contigs(file=16s.file, processors=7)
 [WARNING]: can't find /home/torres/Documents/Projects/Metagenome/data/RawData/60-80b_FOC/7518466FOC1/7518466FOC1_batch-1_1.fastq.gz, ignoring pair.
 [WARNING]: can't find /home/torres/Documents/Projects/Metagenome/data/RawData/60-80b_FOC/8438791FOC/8438791FOC_batch-1_1.fastq.gz, ignoring pair.
 
-# change previous from batch-2 to batch-2
+# change previous from batch-1 to batch-2
 
 for k in 1329026FOC_batch 1705032FOC_batch 3380854FOC_batch 3993942FOC_batch 4044448FOC_batch 4503498FOC_batch 6147792FOC_batch 6154242FOC_batch 7313369FOC_batch 8438791FOC_batch; do \
 sed -i s/$k\-1/$k\-2/g 16s.file; done
@@ -92,9 +106,9 @@ awk '{print $2"\n"$3}' ~/Documents/Projects/Metagenome/resutls/all/16S.file > ra
 * executing trimmomatic
 python ~/Documents/Projects/Metagenome/bin/qc.py ~/Documents/Projects/Metagenome/resutls/all/16s.file
 
-mkdir GoodQual
+mkdir GoodQual 
 
-*Folder [../GoodQual]
+*Folder [../GoodQual] #* 16s.file_qc.txt provided by python script
   awk '{print $2"\n"$3}' ~/Documents/Projects/Metagenome/resutls/all/16s.file_qc.txt > goodfq_list.txt
   cat goodfq_list.txt | xargs -I{} -d"\n" fastqc -o ./ {}
 
@@ -121,7 +135,7 @@ Mean:   1       312.011 312.011 0.528743        4.93049
 
 # next we will eliminate ambiguios reads and suspicious longer reads (bigger than mean)
 
-##screen.seqs(fasta=16s.file_qc.trim.contigs.fasta,group=16s.file_qc.contigs.groups,maxambig=0,maxlength=350,minlength=300,maxhomop=6,processors=7)
+##screen.seqs(fasta=16s.file_qc.trim.contigs.fasta,group=16s.file_qc.contigs.groups,maxambig=0,maxlength=350,minlength=300,maxhomop=6,processors=16)
 
 screen.seqs(maxambig=0,maxlength=350,minlength=300,maxhomop=6)
 
@@ -476,6 +490,468 @@ phylotype(taxonomy=current,name=current)
  *** So the primary disadvantage of OTUs is that it is slow and computationally "hard". It is sensitive to sequencing error rates and so if you have a high error rate 
  *** you can easily get a gigantic distance matrix that will never cluster. The advantages are that you don't have to worry about a database and you can tag names onto OTUs later. 
  *** Also, you tend to get greater resolution - we frequently have many OTUs that have the same genus name because they represent some "sub-genus" taxonomic level.
+
+
+
+##############
+## 03.2016 ###
+
+# After get the 16Sfiles.txt we proceed as follows:
+
+for k in 1329026FOC_batch 1705032FOC_batch 3380854FOC_batch 3993942FOC_batch 4044448FOC_batch 4503498FOC_batch 6147792FOC_batch 6154242FOC_batch 7313369FOC_batch 8438791FOC_batch; do \
+sed -i s/$k\-1/$k\-2/g 16Sfiles.txt; done
+
+sed -i s/7518466FOC1_batch-1/7518466FOC1_batch-NA/g 16Sfiles.txt
+
+# Now we need to unzip all files so we do next: 1) get the file-list 2) then unizip them
+
+awk '{print $2}' 16Sfiles.txt | grep -o "/home/torres/Documents/Projects/Metagenome/data/RawData/.*/*/*" > gzfile
+awk '{print $3}' 16Sfiles.txt | grep -o "/home/torres/Documents/Projects/Metagenome/data/RawData/.*/*/*" >> gzfile
+
+cat gzfile | xargs -I{} -d"\n" gunzip {}
+#cat gzfile_last50 | xargs -I{} -d"\n" gunzip {}
+
+# Now we need to eliminate the prefix .gz from all file names in 16Sfiles.txt, so we do next:
+
+sed -i s/.gz//g 16Sfiles.txt
+#sed -i s/.gz//g last50.txt
+
+
+#*@ Quality Controls using Trimmomatic @*#
+
+#files for fastQC [In folder /Documents/Projects/Metagenome/resutls/all/trimmomatic/]
+
+mkdir RawQual
+
+awk '{print $2"\n"$3}' 16Sfiles.txt > rawfq_list.txt
+ 
+*Folder [../RawQual] 
+  cat rawfq_list.txt | xargs -I{} -d"\n" fastqc -o ./ {}
+
+##* executing trimmomatic * Make the last 50 appart because the name changes
+#** break 16Sfiles.txt file (I did it manually)
+
+python ~/Documents/Projects/Metagenome/bin/qc.py /home/torres/Documents/Projects/Metagenome/data/16s/16Sfiles.txt
+
+python ~/Documents/Projects/Metagenome/bin/qc_last50.py /home/torres/Documents/Projects/Metagenome/data/16s/last50.txt
+
+** I merge last_50.txt_qc.txt with 16Sfiles.txt_qc.txt to 16s.files
+
+mkdir GoodQual
+
+*Folder [../GoodQual]  #* 16s.files provided by python script
+  awk '{print $2"\n"$3}' /home/torres/Documents/Projects/Metagenome/data/16s/16s.files > goodfq_list.txt
+  cat goodfq_list.txt | xargs -I{} -d"\n" fastqc -o ./ {}
+
+
+#########################################
+#					#
+#	Ready to start with Mothur	#
+#					#
+#########################################
+
+#* copy 16s.file to results folder: /home/torres/Documents/Projects/Metagenome/MothurResults/03.2016 
+# Then mothur executing to make the contigs and the rest
+
+make.contigs(file=16s.files, processors=7)
+  Output File Names: 
+  16s.trim.contigs.fasta
+  16s.contigs.qual
+  16s.contigs.report
+  16s.scrap.contigs.fasta
+  16s.scrap.contigs.qual
+  16s.contigs.groups
+
+summary.seqs(fasta=16s.trim.contigs.fasta)
+
+                Start   End     NBases  Ambigs  Polymer NumSeqs
+Minimum:        1       106     106     0       2       1
+2.5%-tile:      1       232     232     0       4       369050
+25%-tile:       1       310     310     0       5       3690499
+Median:         1       315     315     0       5       7380998
+75%-tile:       1       323     323     0       5       11071497
+97.5%-tile:     1       337     337     9       6       14392946
+Maximum:        1       601     601     122     301     14761995
+Mean:   1       311.607 311.607 0.577013        4.91768
+# of Seqs:      14761995
+
+screen.seqs(fasta=16s.trim.contigs.fasta,maxambig=0,maxlength=350,minlength=250,maxhomop=6,group=16s.contigs.groups,summary=16s.trim.contigs.summary)
+
+It took 239 secs to screen 14761995 sequences.
+summary.seqs()
+
+                Start   End     NBases  Ambigs  Polymer NumSeqs
+Minimum:        1       250     250     0       3       1
+2.5%-tile:      1       300     300     0       4       324616
+25%-tile:       1       311     311     0       5       3246153
+Median:         1       315     315     0       5       6492306
+75%-tile:       1       323     323     0       5       9738458
+97.5%-tile:     1       332     332     0       6       12659995
+Maximum:        1       350     350     0       6       12984610
+Mean:   1       316.461 316.461 0       4.92147
+# of Seqs:      12984610
+
+
+# Reducing redundance
+unique.seqs()
+summary.seqs()
+
+                Start   End     NBases  Ambigs  Polymer NumSeqs
+Minimum:        1       250     250     0       3       1
+2.5%-tile:      1       291     291     0       4       69698
+25%-tile:       1       311     311     0       5       696972
+Median:         1       315     315     0       5       1393944
+75%-tile:       1       324     324     0       5       2090916
+97.5%-tile:     1       337     337     0       6       2718190
+Maximum:        1       350     350     0       6       2787887
+Mean:   1       316.111 316.111 0       4.91059
+# of Seqs:      2787887
+
+# Reducing file size changing name of seqs
+
+count.seqs(name=current,group=current)
+# Total number of sequences: 12984610
+summary.seqs(count=current)
+
+                Start   End     NBases  Ambigs  Polymer NumSeqs
+Minimum:        1       250     250     0       3       1
+2.5%-tile:      1       300     300     0       4       324616
+25%-tile:       1       311     311     0       5       3246153
+Median:         1       315     315     0       5       6492306
+75%-tile:       1       323     323     0       5       9738458
+97.5%-tile:     1       332     332     0       6       12659995
+Maximum:        1       350     350     0       6       12984610
+Mean:   1       316.461 316.461 0       4.92147
+# of unique seqs:       2787887
+total # of seqs:        12984610
+
+#######################################
+### creating short-length reference ###
+
+align.seqs(fasta=test_align.fasta,reference=/home/torres/Documents/Projects/Metagenome/data/db/silva.bacteria/silva.bacteria.fasta)
+
+1 processor It took 153 secs to align 15000 sequences.
+
+		Start   End     NBases  Ambigs  Polymer NumSeqs
+2.5%-tile:      1044    6333    307     0       4       376
+
+pcr.seqs(fasta=/home/torres/Documents/Projects/Metagenome/data/db/silva.bacteria/silva.bacteria.fasta, start=1000, end=6400, keepdots=F, processors=7)
+
+/home/torres/Documents/Projects/Metagenome/data/db/silva.bacteria/silva.bacteria.pcr.fasta
+
+### end ###
+
+align.seqs(reference=/home/sukmb347/sukmb347/Metagenome/db/silva.bacteria/silva.bacteria.pcr.fasta)
+It took 723 secs to align 2787887 sequences.
+
+summary.seqs()
+get.current()
+
+                Start   End     NBases  Ambigs  Polymer NumSeqs
+Minimum:        -1      -1      0       0       1       1
+2.5%-tile:      44      5332    283     0       4       69698
+25%-tile:       44      5333    310     0       5       696972
+Median:         44      5333    315     0       5       1393944
+75%-tile:       44      5333    323     0       5       2090916
+97.5%-tile:     125     5333    332     0       6       2718190
+Maximum:        5395    5395    350     0       6       2787887
+Mean:   61.8844 5320.07 314.499 0       4.90726
+# of Seqs:      2787887
+
+# make sure that everything overlaps the same region
+screen.seqs(fasta=16s.trim.contigs.good.unique.align,count=current,summary=current,start=44,end=5333)
+
+summary.seqs()
+
+                Start   End     NBases  Ambigs  Polymer NumSeqs
+Minimum:        44      5333    255     0       3       1
+2.5%-tile:      44      5333    299     0       4       62056
+25%-tile:       44      5333    311     0       5       620556
+Median:         44      5333    315     0       5       1241112
+75%-tile:       44      5333    323     0       5       1861667
+97.5%-tile:     44      5333    332     0       6       2420167
+Maximum:        44      5395    350     0       6       2482222
+Mean:   44      5333.25 316.557 0       4.9199
+# of Seqs:      2482222
+
+# Remove the overhangs at both ends. reduce the size of the file and left the usefull information
+
+filter.seqs(fasta=current,vertical=T,trump=.)
+ 
+  Length of filtered alignment: 1012
+  Number of columns removed: 4388
+  Length of the original alignment: 5400
+  Number of sequences used to construct filter: 2482222
+  
+summary.seqs()
+
+                Start   End     NBases  Ambigs  Polymer NumSeqs
+Minimum:        1       1011    255     0       3       1
+2.5%-tile:      1       1012    298     0       4       62056
+25%-tile:       1       1012    311     0       5       620556
+Median:         1       1012    315     0       5       1241112
+75%-tile:       1       1012    323     0       5       1861667
+97.5%-tile:     1       1012    332     0       6       2420167
+Maximum:        1       1012    350     0       6       2482222
+Mean:   1       1012    316.537 0       4.91989
+# of Seqs:      2482222
+
+#To remove more redundance created by trimming the ends, we will re-run unique.seqs:
+
+unique.seqs()
+summary.seqs()
+
+                Start   End     NBases  Ambigs  Polymer NumSeqs
+Minimum:        1       1011    255     0       3       1
+2.5%-tile:      1       1012    299     0       4       61729
+25%-tile:       1       1012    311     0       5       617281
+Median:         1       1012    315     0       5       1234562
+75%-tile:       1       1012    323     0       5       1851842
+97.5%-tile:     1       1012    332     0       6       2407394
+Maximum:        1       1012    350     0       6       2469122
+Mean:   1       1012    316.632 0       4.9212
+# of Seqs:      2469122
+
+mothur > get.current()
+
+Current files saved by mothur:
+fasta=16s.trim.contigs.good.unique.good.filter.unique.fasta
+group=16s.contigs.good.groups
+name=16s.trim.contigs.good.unique.good.filter.names
+count=16s.trim.contigs.good.good.count_table
+processors=16
+summary=16s.trim.contigs.good.unique.good.filter.unique.summary
+
+set.current(fasta=16s.trim.contigs.good.unique.good.filter.unique.fasta, group=16s.contigs.good.groups, name=16s.trim.contigs.good.unique.good.filter.names,count=16s.trim.contigs.good.good.count_table,processors=8,summary=16s.trim.contigs.good.unique.good.filter.unique.summary)
+
+#*** Changing to Server!!
+
+
+# to further de-noising, generally favor allowing 1 difference of every 100pb of sequence;
+# take 2.2 days pre-cluster  
+# chimera took 15.5 days
+
+pre.cluster(fasta=current,count=current,processors=8,diffs=2)
+  
+  Total number of sequences before precluster was 1873518.
+  
+summary.seqs()
+
+                Start   End     NBases  Ambigs  Polymer NumSeqs
+Minimum:        1       1011    255     0       3       1
+2.5%-tile:      1       1012    297     0       4       32509
+25%-tile:       1       1012    311     0       5       325090
+Median:         1       1012    316     0       5       650180
+75%-tile:       1       1012    324     0       5       975270
+97.5%-tile:     1       1012    332     0       6       1267851
+Maximum:        1       1012    350     0       6       1300359
+Mean:   1       1012    316.801 0       4.92201
+# of Seqs:      1300359
+ 
+get.current()
+
+
+Current files saved by mothur:
+fasta=16s.trim.contigs.good.unique.good.filter.unique.precluster.fasta
+group=16s.contigs.good.groups
+name=16s.trim.contigs.good.unique.good.filter.names
+count=16s.trim.contigs.good.unique.good.filter.unique.precluster.count_table
+processors=16
+summary=16s.trim.contigs.good.unique.good.filter.unique.precluster.summary
+
+chimera.uchime(fasta=current,count=current,dereplicate=t,processors=16)
+
+mothur > get.current()
+
+Current files saved by mothur:
+accnos=16s.trim.contigs.good.unique.good.filter.unique.precluster.uchime.accnos
+fasta=16s.trim.contigs.good.unique.good.filter.unique.precluster.fasta
+group=16s.contigs.good.groups
+name=16s.trim.contigs.good.unique.good.filter.names
+count=16s.trim.contigs.good.unique.good.filter.unique.precluster.uchime.pick.count_table
+processors=16
+summary=16s.trim.contigs.good.unique.good.filter.unique.precluster.summary
+
+remove.seqs(fasta=current,accnos=current,name=current,dups=f)
+
+summary.seqs(fasta=current, count=current)
+
+                Start   End     NBases  Ambigs  Polymer NumSeqs
+Minimum:        1       1011    255     0       3       1
+2.5%-tile:      1       1012    302     0       4       269232
+25%-tile:       1       1012    311     0       5       2692313
+Median:         1       1012    315     0       5       5384625
+75%-tile:       1       1012    323     0       5       8076937
+97.5%-tile:     1       1012    338     0       6       10500017
+Maximum:        1       1012    350     0       6       10769248
+Mean:   0.990042        1001.92 313.019 0       4.87876
+# of unique seqs:       551795
+total # of seqs:        10769248
+
+Output File Names: 
+16s.trim.contigs.good.unique.good.filter.unique.precluster.pick.summary
+
+It took 15 secs to summarize 10769248 sequences.
+
+
+get.current()
+
+Current files saved by mothur:
+accnos=16s.trim.contigs.good.unique.good.filter.unique.precluster.uchime.accnos
+fasta=16s.trim.contigs.good.unique.good.filter.unique.precluster.pick.fasta
+group=16s.contigs.good.groups
+name=16s.trim.contigs.good.unique.good.filter.pick.names
+count=16s.trim.contigs.good.unique.good.filter.unique.precluster.uchime.pick.count_table
+processors=16
+summary=16s.trim.contigs.good.unique.good.filter.unique.precluster.pick.summary
+
+
+#qsub -I -q exc_b1 -N classifying -j classifying.out -l select=1:all=true:ncpus=16:mem=64gb /home/sukmb347/bin/mothur "#set.current(accnos=/home/sukmb347/sukmb347/Metagenome/16s/all/mothur/16s.file_qc.trim.contigs.good.unique.good.filter.unique.precluster.uchime.accnos,fasta=/home/sukmb347/sukmb347/Metagenome/16s/all/mothur/16s.file_qc.trim.contigs.good.unique.good.filter.unique.precluster.pick.fasta,group=16s.file_qc.contigs.good.groups,name=/home/sukmb347/sukmb347/Metagenome/16s/all/mothur/16s.file_qc.trim.contigs.good.unique.good.filter.names,count=/home/sukmb347/sukmb347/Metagenome/16s/all/mothur/16s.file_qc.trim.contigs.good.unique.good.filter.unique.precluster.count_table,processors=16,summary=/home/sukmb347/sukmb347/Metagenome/16s/all/mothur/16s.file_qc.trim.contigs.good.unique.good.filter.unique.precluster.summary);classify.seqs(fasta=current, count=current, reference=/home/sukmb347/sukmb347/Metagenome/db/silva.nr_v119/silva.nr_v119.align,taxonomy=/home/sukmb347/sukmb347/Metagenome/db/silva.nr_v119/silva.nr_v119.tax, cutoff=80)"
+
+
+# Remove primer amplification error
+
+classify.seqs(fasta=current, count=current, reference=/home/sukmb347/sukmb347/Metagenome/db/silva.nr_v119/silva.nr_v119.align,taxonomy=/home/sukmb347/sukmb347/Metagenome/db/silva.nr_v119/silva.nr_v119.tax, cutoff=80)
+
+remove.lineage(fasta=current, count=current, taxonomy=current, taxon=Chloroplast-Mitochondria-unknown-Archaea-Eukaryota)
+
+##
+get.current()
+
+Current files saved by mothur:
+accnos=16s.trim.contigs.good.unique.good.filter.unique.precluster.pick.nr_v119.wang.flip.accnos
+fasta=16s.trim.contigs.good.unique.good.filter.unique.precluster.pick.pick.fasta
+group=16s.contigs.good.groups
+name=16s.trim.contigs.good.unique.good.filter.pick.names
+taxonomy=16s.trim.contigs.good.unique.good.filter.unique.precluster.pick.nr_v119.wang.pick.taxonomy
+count=16s.trim.contigs.good.unique.good.filter.unique.precluster.uchime.pick.pick.count_table
+processors=16
+summary=16s.trim.contigs.good.unique.good.filter.unique.precluster.pick.summary
+
+## generating OTUs ##
+set.current(accnos=16s.trim.contigs.good.unique.good.filter.unique.precluster.pick.nr_v119.wang.flip.accnos,fasta=16s.trim.contigs.good.unique.good.filter.unique.precluster.pick.pick.fasta,group=16s.contigs.good.groups,name=16s.trim.contigs.good.unique.good.filter.pick.names,taxonomy=16s.trim.contigs.good.unique.good.filter.unique.precluster.pick.nr_v119.wang.pick.taxonomy,count=16s.trim.contigs.good.unique.good.filter.unique.precluster.uchime.pick.pick.count_table,processors=16,summary=16s.trim.contigs.good.unique.good.filter.unique.precluster.pick.summary)
+
+## spliting and clustering in two steps cause ram issues, it also save time if something going wrong classifying (step2):
+
+cluster.split(fasta=current,count=current,taxonomy=current,splitmethod=classify,taxlevel=5,cutoff=0.05,processors=16,cluster=f)  # still in the safe side according Schools's assessments: Matthews's corr coef vs OTU definition; spliting cutoff and taxlevel 
+
+cluster.split(file=16s.trim.contigs.good.unique.good.filter.unique.precluster.pick.pick.file,cutoff=0.05)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#Clustering 16s.file_qc.trim.contigs.good.unique.good.filter.unique.precluster.pick.pick.fasta.1.dist
+#Cutoff was 0.155 changed cutoff to 0.05
+#Cutoff was 0.155 changed cutoff to 0.05
+#It took 45991 seconds to cluster
+#Merging the clustered files...
+#It took 41 seconds to merge.
+
+#Clustering /home/sukmb347/sukmb347/Metagenome/16s/all/last/16s.file_qc.trim.contigs.good.unique.good.filter.precluster.pick.pick.fasta.1.dist
+#Cutoff was 0.155 changed cutoff to 0.15
+#Cutoff was 0.155 changed cutoff to 0.05
+#Cutoff was 0.155 changed cutoff to 0.05
+#It took 86381 seconds to cluster
+#Merging the clustered files...
+#It took 35 seconds to merge.
+
+
+#Output File Names: 
+#16s.file_qc.trim.contigs.good.unique.good.filter.unique.precluster.pick.pick.an.unique_list.list
+
+get.current()
+
+Current files saved by mothur:
+accnos=16s.file_qc.trim.contigs.good.unique.good.filter.unique.precluster.uchime.accnos
+column=16s.file_qc.trim.contigs.good.unique.good.filter.unique.precluster.pick.pick.fasta.73.dist
+fasta=16s.file_qc.trim.contigs.good.unique.good.filter.unique.precluster.pick.pick.fasta
+group=16s.file_qc.contigs.good.groups
+list=16s.file_qc.trim.contigs.good.unique.good.filter.unique.precluster.pick.pick.an.unique_list.list
+name=16s.file_qc.trim.contigs.good.unique.good.filter.names
+taxonomy=16s.file_qc.trim.contigs.good.unique.good.filter.unique.precluster.pick.nr_v119.wang.pick.taxonomy
+count=16s.file_qc.trim.contigs.good.unique.good.filter.unique.precluster.pick.count_table
+processors=16
+summary=16s.file_qc.trim.contigs.good.unique.good.filter.unique.precluster.summary
+
+Current working directory: /ifs/data/nfs_share/sukmb347/Metagenome/16s/all/mothur/
+
+# How many sequences are in each OTU from each group:
+
+make.shared(list=current, count=current,label=0.03)
+
+get.current()
+
+#Current files saved by mothur:
+#accnos=/home/sukmb347/sukmb347/Metagenome/16s/all/last/16s.file_qc.trim.contigs.good.unique.good.filter.precluster.uchime.accnos
+#column=/home/sukmb347/sukmb347/Metagenome/16s/all/last/16s.file_qc.trim.contigs.good.unique.good.filter.precluster.pick.pick.fasta.61.dist
+#fasta=/home/sukmb347/sukmb347/Metagenome/16s/all/last/16s.file_qc.trim.contigs.good.unique.good.filter.precluster.pick.pick.fasta
+#group=/home/sukmb347/sukmb347/Metagenome/16s/all/last/16s.file_qc.contigs.good.groups
+#list=/home/sukmb347/sukmb347/Metagenome/16s/all/last/16s.file_qc.trim.contigs.good.unique.good.filter.precluster.pick.pick.an.unique_list.list
+#name=/home/sukmb347/sukmb347/Metagenome/16s/all/last/16s.file_qc.trim.contigs.good.pick.names
+#rabund=/home/sukmb347/sukmb347/Metagenome/16s/all/last/16s.file_qc.trim.contigs.good.unique.good.filter.precluster.pick.pick.an.unique_list.117100FOC_G1.rabund
+#shared=/home/sukmb347/sukmb347/Metagenome/16s/all/last/16s.file_qc.trim.contigs.good.unique.good.filter.precluster.pick.pick.an.unique_list.shared
+#taxonomy=/home/sukmb347/sukmb347/Metagenome/16s/all/last/16s.file_qc.trim.contigs.good.unique.good.filter.precluster.pick.nr_v119.wang.pick.taxonomy
+#count=/home/sukmb347/sukmb347/Metagenome/16s/all/last/16s.file_qc.trim.contigs.good.unique.good.filter.precluster.uchime.pick.pick.count_table
+#processors=16
+#summary=/home/sukmb347/sukmb347/Metagenome/16s/all/last/16s.file_qc.trim.contigs.good.unique.good.filter.precluster.pick.summary
+
+classify.otu(list=current, count=current,taxonomy=current,label=0.03)
+
+
+###* OTU Analysis *###
+
+system(cp /home/sukmb347/sukmb347/Metagenome/16s/all/last/16s.file_qc.trim.contigs.good.unique.good.filter.precluster.pick.pick.an.unique_list.shared ./16S.an.shared)
+system(mv ./16s.file_qc.trim.contigs.good.unique.good.filter.precluster.pick.pick.an.unique_list.0.03.cons.tax.summary ./16S.an.cons.taxonomy)
+
+# how many sequences we have in each sample
+
+count.groups(shared=16S.an.shared)
+
+# subsampling and rarefying your data is an important thing to do
+
+sub.sample(shared=16S.an.shared, size=11453)
+
+#* Alpha Diversity *#
+
+collect.single(shared=16S.an.shared, calc=sobs-chao-ace-invsimpson, freq=100)
+
+rarefaction.single(shared=16S.an.shared, calc=sobs, freq=100)
+
+summary.single(shared=16S.an.shared, calc=nseqs-coverage-sobs-chao-ace-invsimpson-shannon-npshannon-simpson-qstat-bergerparker-logseries-geometric-bstick, subsample=11453,iters=1000)
+
+summary.single(shared=16S.an.0.03.subsample.shared, calc=nseqs-coverage-sobs-chao-ace-invsimpson-shannon-npshannon-simpson-qstat-bergerparker-logseries-geometric-bstick,iters=1000)
+
+
+#* Beta Diversity *#
+
+heatmap.bin(shared=16S.an.0.03.subsample.shared, scale=log2, numotu=50)
+
+dist.shared(shared=16S.an.shared, calc=thetayc-jclass-braycurtis-jabund-morisitahorn-sorabund, subsample=11453)
+
+
+# phylotypes
+
+phylotype(taxonomy=current,name=current)
+
+
+
+
+
+
 
 
 
