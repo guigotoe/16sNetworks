@@ -813,7 +813,7 @@ summary=16s.trim.contigs.good.unique.good.filter.unique.precluster.pick.summary
 
 classify.seqs(fasta=current, count=current, reference=/home/sukmb347/sukmb347/Metagenome/db/silva.nr_v119/silva.nr_v119.align,taxonomy=/home/sukmb347/sukmb347/Metagenome/db/silva.nr_v119/silva.nr_v119.tax, cutoff=80)
 
-remove.lineage(fasta=current, count=current, taxonomy=current, taxon=Chloroplast-Mitochondria-unknown-Archaea-Eukaryota)
+remove.lineage(fasta=current, count=current, taxonomy=current, taxon=Chloroplast-Mitochondria-unknown-Archaea-Eukaryota-Cyanobacteria)
 
 ##
 get.current()
@@ -829,109 +829,57 @@ processors=16
 summary=16s.trim.contigs.good.unique.good.filter.unique.precluster.pick.summary
 
 ## generating OTUs ##
-set.current(accnos=16s.trim.contigs.good.unique.good.filter.unique.precluster.pick.nr_v119.wang.flip.accnos,fasta=16s.trim.contigs.good.unique.good.filter.unique.precluster.pick.pick.fasta,group=16s.contigs.good.groups,name=16s.trim.contigs.good.unique.good.filter.pick.names,taxonomy=16s.trim.contigs.good.unique.good.filter.unique.precluster.pick.nr_v119.wang.pick.taxonomy,count=16s.trim.contigs.good.unique.good.filter.unique.precluster.uchime.pick.pick.count_table,processors=16,summary=16s.trim.contigs.good.unique.good.filter.unique.precluster.pick.summary)
+#set.current(accnos=16s.trim.contigs.good.unique.good.filter.unique.precluster.pick.nr_v119.wang.flip.accnos,fasta=16s.trim.contigs.good.unique.good.filter.unique.precluster.pick.pick.fasta,group=16s.contigs.good.groups,name=16s.trim.contigs.good.unique.good.filter.pick.names,taxonomy=16s.trim.contigs.good.unique.good.filter.unique.precluster.pick.nr_v119.wang.pick.taxonomy,count=16s.trim.contigs.good.unique.good.filter.unique.precluster.uchime.pick.pick.count_table,processors=16,summary=16s.trim.contigs.good.unique.good.filter.unique.precluster.pick.summary)
+
+cluster.split(fasta=current,count=current,taxonomy=current,splitmethod=classify,taxlevel=5,cutoff=0.05,processors=16)  # still in the safe side according Schools's assessments: Matthews's corr coef vs OTU definition; spliting cutoff and taxlevel 
+
 
 ## spliting and clustering in two steps cause ram issues, it also save time if something going wrong classifying (step2):
 
-cluster.split(fasta=current,count=current,taxonomy=current,splitmethod=classify,taxlevel=5,cutoff=0.05,processors=16,cluster=f)  # still in the safe side according Schools's assessments: Matthews's corr coef vs OTU definition; spliting cutoff and taxlevel 
-
-cluster.split(file=16s.trim.contigs.good.unique.good.filter.unique.precluster.pick.pick.file,cutoff=0.05)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#Clustering 16s.file_qc.trim.contigs.good.unique.good.filter.unique.precluster.pick.pick.fasta.1.dist
-#Cutoff was 0.155 changed cutoff to 0.05
-#Cutoff was 0.155 changed cutoff to 0.05
-#It took 45991 seconds to cluster
-#Merging the clustered files...
-#It took 41 seconds to merge.
-
-#Clustering /home/sukmb347/sukmb347/Metagenome/16s/all/last/16s.file_qc.trim.contigs.good.unique.good.filter.precluster.pick.pick.fasta.1.dist
-#Cutoff was 0.155 changed cutoff to 0.15
-#Cutoff was 0.155 changed cutoff to 0.05
-#Cutoff was 0.155 changed cutoff to 0.05
-#It took 86381 seconds to cluster
-#Merging the clustered files...
-#It took 35 seconds to merge.
-
+#cluster.split(fasta=current,count=current,taxonomy=current,splitmethod=classify,taxlevel=5,cutoff=0.05,processors=16,cluster=f)  # still in the safe side according Schools's assessments: Matthews's corr coef vs OTU definition; spliting cutoff and taxlevel 
+#cluster.split(file=16s.trim.contigs.good.unique.good.filter.unique.precluster.pick.pick.file,cutoff=0.05)
 
 #Output File Names: 
 #16s.file_qc.trim.contigs.good.unique.good.filter.unique.precluster.pick.pick.an.unique_list.list
 
-get.current()
-
-Current files saved by mothur:
-accnos=16s.file_qc.trim.contigs.good.unique.good.filter.unique.precluster.uchime.accnos
-column=16s.file_qc.trim.contigs.good.unique.good.filter.unique.precluster.pick.pick.fasta.73.dist
-fasta=16s.file_qc.trim.contigs.good.unique.good.filter.unique.precluster.pick.pick.fasta
-group=16s.file_qc.contigs.good.groups
-list=16s.file_qc.trim.contigs.good.unique.good.filter.unique.precluster.pick.pick.an.unique_list.list
-name=16s.file_qc.trim.contigs.good.unique.good.filter.names
-taxonomy=16s.file_qc.trim.contigs.good.unique.good.filter.unique.precluster.pick.nr_v119.wang.pick.taxonomy
-count=16s.file_qc.trim.contigs.good.unique.good.filter.unique.precluster.pick.count_table
-processors=16
-summary=16s.file_qc.trim.contigs.good.unique.good.filter.unique.precluster.summary
-
-Current working directory: /ifs/data/nfs_share/sukmb347/Metagenome/16s/all/mothur/
-
 # How many sequences are in each OTU from each group:
 
 make.shared(list=current, count=current,label=0.03)
+classify.otu(list=current, count=current, taxonomy=current, label=0.03)
 
 get.current()
 
-#Current files saved by mothur:
-#accnos=/home/sukmb347/sukmb347/Metagenome/16s/all/last/16s.file_qc.trim.contigs.good.unique.good.filter.precluster.uchime.accnos
-#column=/home/sukmb347/sukmb347/Metagenome/16s/all/last/16s.file_qc.trim.contigs.good.unique.good.filter.precluster.pick.pick.fasta.61.dist
-#fasta=/home/sukmb347/sukmb347/Metagenome/16s/all/last/16s.file_qc.trim.contigs.good.unique.good.filter.precluster.pick.pick.fasta
-#group=/home/sukmb347/sukmb347/Metagenome/16s/all/last/16s.file_qc.contigs.good.groups
-#list=/home/sukmb347/sukmb347/Metagenome/16s/all/last/16s.file_qc.trim.contigs.good.unique.good.filter.precluster.pick.pick.an.unique_list.list
-#name=/home/sukmb347/sukmb347/Metagenome/16s/all/last/16s.file_qc.trim.contigs.good.pick.names
-#rabund=/home/sukmb347/sukmb347/Metagenome/16s/all/last/16s.file_qc.trim.contigs.good.unique.good.filter.precluster.pick.pick.an.unique_list.117100FOC_G1.rabund
-#shared=/home/sukmb347/sukmb347/Metagenome/16s/all/last/16s.file_qc.trim.contigs.good.unique.good.filter.precluster.pick.pick.an.unique_list.shared
-#taxonomy=/home/sukmb347/sukmb347/Metagenome/16s/all/last/16s.file_qc.trim.contigs.good.unique.good.filter.precluster.pick.nr_v119.wang.pick.taxonomy
-#count=/home/sukmb347/sukmb347/Metagenome/16s/all/last/16s.file_qc.trim.contigs.good.unique.good.filter.precluster.uchime.pick.pick.count_table
-#processors=16
-#summary=/home/sukmb347/sukmb347/Metagenome/16s/all/last/16s.file_qc.trim.contigs.good.unique.good.filter.precluster.pick.summary
+Current files saved by mothur:
+set.current(accnos=16s.trim.contigs.good.unique.good.filter.unique.precluster.pick.nr_v119.wang.flip.accnos,column=16s.trim.contigs.good.unique.good.filter.unique.precluster.pick.pick.fasta.140.dist,fasta=16s.trim.contigs.good.unique.good.filter.unique.precluster.pick.pick.fasta,group=16s.contigs.good.groups,list=16s.trim.contigs.good.unique.good.filter.unique.precluster.pick.pick.an.unique_list.list,name=16s.trim.contigs.good.unique.good.filter.pick.names,rabund=16s.trim.contigs.good.unique.good.filter.unique.precluster.pick.pick.an.unique_list.1165027BSP_a_G3.rabund,shared=16s.trim.contigs.good.unique.good.filter.unique.precluster.pick.pick.an.unique_list.shared,taxonomy=16s.trim.contigs.good.unique.good.filter.unique.precluster.pick.nr_v119.wang.pick.taxonomy,count=16s.trim.contigs.good.unique.good.filter.unique.precluster.uchime.pick.pick.count_table,processors=16,summary=16s.trim.contigs.good.unique.good.filter.unique.precluster.pick.summary)
 
-classify.otu(list=current, count=current,taxonomy=current,label=0.03)
+Current working directory: /ifs/data/nfs_share/sukmb347/Metagenome/16s/03.2016/
+
 
 
 ###* OTU Analysis *###
 
-system(cp /home/sukmb347/sukmb347/Metagenome/16s/all/last/16s.file_qc.trim.contigs.good.unique.good.filter.precluster.pick.pick.an.unique_list.shared ./16S.an.shared)
-system(mv ./16s.file_qc.trim.contigs.good.unique.good.filter.precluster.pick.pick.an.unique_list.0.03.cons.tax.summary ./16S.an.cons.taxonomy)
+system(cp ./16s.trim.contigs.good.unique.good.filter.unique.precluster.pick.pick.an.unique_list.shared ./16s.an.shared)
+system(cp ./16s.trim.contigs.good.unique.good.filter.unique.precluster.pick.pick.an.unique_list.0.02.cons.tax.summary ./16S.an.cons.taxonomy)
+system(cp ./16s.trim.contigs.good.unique.good.filter.unique.precluster.uchime.pick.pick.count_table ./16S.an.count_table)
 
 # how many sequences we have in each sample
 
-count.groups(shared=16S.an.shared)
+count.groups(shared=16s.an.shared)
 
 # subsampling and rarefying your data is an important thing to do
 
-sub.sample(shared=16S.an.shared, size=11453)
+#sub.sample(shared=16s.an.shared, size=11453)
 
 #* Alpha Diversity *#
 
-collect.single(shared=16S.an.shared, calc=sobs-chao-ace-invsimpson, freq=100)
+#collect.single(shared=16S.an.shared, calc=sobs-chao-ace-invsimpson, freq=100)
 
-rarefaction.single(shared=16S.an.shared, calc=sobs, freq=100)
+#rarefaction.single(shared=current,calc=sobs-chao-ace-invsimpson-shannon,freq=100)
+rarefaction.single(shared=16s.an.shared, calc=sobs, freq=100)
 
-summary.single(shared=16S.an.shared, calc=nseqs-coverage-sobs-chao-ace-invsimpson-shannon-npshannon-simpson-qstat-bergerparker-logseries-geometric-bstick, subsample=11453,iters=1000)
+collect.single(shared=16s.an.shared, calc=invsimpson,subsample=13000, freq=100)
+
+summary.single(shared=16s.an.shared, calc=nseqs-coverage-sobs-chao-ace-invsimpson-shannon-npshannon-simpson-qstat-bergerparker-logseries-geometric-bstick, subsample=13000,iters=1000)
 
 summary.single(shared=16S.an.0.03.subsample.shared, calc=nseqs-coverage-sobs-chao-ace-invsimpson-shannon-npshannon-simpson-qstat-bergerparker-logseries-geometric-bstick,iters=1000)
 
@@ -945,9 +893,20 @@ dist.shared(shared=16S.an.shared, calc=thetayc-jclass-braycurtis-jabund-morisita
 
 # phylotypes
 
+set.current(accnos=16s.trim.contigs.good.unique.good.filter.unique.precluster.pick.nr_v119.wang.flip.accnos,column=16s.trim.contigs.good.unique.good.filter.unique.precluster.pick.pick.fasta.140.dist,fasta=16s.trim.contigs.good.unique.good.filter.unique.precluster.pick.pick.fasta,group=16s.contigs.good.groups,list=16s.trim.contigs.good.unique.good.filter.unique.precluster.pick.pick.an.unique_list.list,name=16s.trim.contigs.good.unique.good.filter.pick.names,rabund=16s.trim.contigs.good.unique.good.filter.unique.precluster.pick.pick.an.unique_list.1165027BSP_a_G3.rabund,shared=16s.trim.contigs.good.unique.good.filter.unique.precluster.pick.pick.an.unique_list.shared,taxonomy=16s.trim.contigs.good.unique.good.filter.unique.precluster.pick.nr_v119.wang.pick.taxonomy,count=16s.trim.contigs.good.unique.good.filter.unique.precluster.uchime.pick.pick.count_table,processors=16,summary=16s.trim.contigs.good.unique.good.filter.unique.precluster.pick.summary)
+
 phylotype(taxonomy=current,name=current)
+dist.seqs(fasta=current,output=lt)
 
 
+
+
+
+
+#### Using rScript ####
+
+1) generate Rarefaction plots
+2) Diversity plots using shanon, invsimpson etc..
 
 
 

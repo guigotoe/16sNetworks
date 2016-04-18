@@ -12,24 +12,30 @@
 
 #* requirements *#
 library(ggplot2)
+library(ggrepel)
 library(reshape2)
 library(scales)
 library(vegan)
 library(ade4)
 library(RColorBrewer) 
 
+source("/home/torres/Documents/Projects/Metagenome/bin/rscripts/16sFunctions.R")
 
 #* Globals *#
 script_loc = getwd()
-setwd("/home/torres/Documents/Projects/Metagenome/resutls/all/Networks/")
-files.path = '/home/torres/ikmb_storage/Metagenome/16s/all/last/'#
-design <- read.table(paste(files.path,'design.txt',sep=''),header=F,sep="\t")
-rownames(design) <- design$V1 
+setwd("/home/torres/Documents/Projects/Metagenome/results/plotsMothur/03.2016/")
+files.path = '/home/torres/ikmb_storage/Metagenome/16s/03.2016/'#
+send.to <- "/home/torres/Documents/Projects/Metagenome/MothurResults/03.2016/"
+plots <- "/home/torres/Documents/Projects/Metagenome/results/plotsMothur/03.2016/"
+
+
+
+
 obs_files <- list.files(files.path,pattern="\\.sobs$")
 rarefaction <- read.table(paste(files.path,'16S.an.groups.rarefaction',sep=''),header=T,sep="\t")
 rarefactionN <- read.table(paste(files.path,'16S.an.0.03.subsample.groups.rarefaction',sep=''),header=T,sep="\t")
 taxonomy <- read.table(paste(files.path,'16S.an.0.03.cons.taxonomy',sep=''),header=T,sep="\t")
-calc <- read.table(paste(files.path,'16S.an.groups.summary',sep=''),header=T,sep="\t")
+
 calcN <- read.table(paste(files.path,'16S.an.0.03.subsample.groups.summary',sep=''),header=T,sep="\t")
 otu_ab <- read.table(paste(files.path,'16S.an.cons.taxonomy',sep=''),header=T,sep="\t")
 counts <- read.table(paste(files.path,'16S.an.0.03.subsample.shared',sep=''),header=T,sep="\t") 
@@ -42,170 +48,138 @@ clos <- read.table('closeness.txt',header=T,sep="\t")
 eigc <- read.table('eigvectc.txt',header=T,sep="\t")
 
 
-
-
-###############
-#* Functions *#
-###############
-
-OTUs <- function (file_list){
-  df = data.frame(numsampled=1)
-  for (i in seq(1:length(file_list))){ 
-    x <- read.table(paste(files.path,file_list[i],sep=''),header=T,sep="\t") #i 10-1-100
-    sample.name <- gregexpr("[[:digit:]]+[[:upper:]]{3}",file_list[i]) #i
-    if (sample.name[[1]][1] != -1){
-      sample.name = regmatches(file_list[i],sample.name) #i
-      sample.name = sample.name[[1]][1]
-      sample.name = paste(sample.name,design[sample.name,2],design[sample.name,3],sep="_")
-    }else{sample.name = tail(strsplit(file_list[i],"\\.")[[1]],n=2L)[1]}
-    colnames(x)[2] <- sample.name
-    df <- merge(df,as.data.frame(x),by='numsampled',all.x=T,all.y=T)
-  }
-  return(df)
-}
-rare.graph <- function(df){
-  df[,-1] <- log10(df[,-1])
-  samples <- melt(df,id.vars="numsampled",na.rm=T)
-  ggplot(samples,aes(x=numsampled,y=value,colour=variable))+geom_line()+xlab("Reads sampled")+
-    ylab("Log10(Observed OTUs)")+theme(legend.position="none")+ggtitle("Rarefaction or accumulation curve") 
-}
-
-blank_theme <- theme_minimal()+
-  theme(
-    axis.title.x = element_blank(),
-    axis.title.y = element_blank(),
-    panel.border = element_blank(),
-    panel.grid=element_blank(),
-    axis.ticks = element_blank(),
-    plot.title=element_text(size=14, face="bold")
-  )
-brewerplot <- function (palette) {
-  p + scale_fill_brewer(palette = palette) + opts(title=palette)
-}
-taxa <- function(tax,n){ 
-  tax <- strsplit(as.character(taxonomy$Taxonomy[taxonomy$OTU==tax][1]),";")
-  return(gsub("[[:punct:]]","",unlist(regmatches(tax[[1]][n],gregexpr("[[:alpha:]]+[[:punct:]]",tax[[1]][n])))[1]))
-}
-indiv <- function(x){
-  sample.name <- gregexpr("[[:digit:]]+[[:upper:]]{3}",x)
-  sample.name = regmatches(x,sample.name)
-  return(sample.name[[1]][1])
-}
-getrank <- function (i){
-  if (i %in% c(0:19)){return("< 20")
-  }else if (i %in% c(20:29)){return("20-30")
-  }else if (i %in% c(30:34)){return("30-35")
-  }else if (i %in% c(35:39)){return("35-40")
-  }else if (i %in% c(40:44)){return("40-45")
-  }else if (i %in% c(45:49)){return("45-50")
-  }else if (i %in% c(50:54)){return("50-55")
-  }else if (i %in% c(55:59)){return("55-60")
-  }else if (i %in% c(60:64)){return("60-65")
-  }else if (i %in% c(65:69)){return("65-70")
-  }else if (i %in% c(70:74)){return("70-75")
-  }else if (i %in% c(75:79)){return("75-80")
-  }else if (i %in% c(80:84)){return("80-85")
-  }else if (i %in% c(85:90)){return("85-90")
-  }else if (i %in% c(91:130)){return("90+")
-  }else {return(NA)}
-}
-df <- genus_female
-title <- "Females"
-genus_graph <- function(df,title){
-  gm <- as.matrix(prop.table(as.matrix(df[,c(2:(ncol(df)-1))]),1))
-  gm <- as.data.frame(gm)
-  gm$"id" <- df$"id"
-  gm$"age" <- df$"V3"
-  agex <- c()
-  k=0
-  for (i in seq(1:NROW(gf))){  
-    if (i==1){
-      agex <- append(agex,gf[,ncol(gm)][i])
-    }else{
-      if(gm[,ncol(gm)][i]== gm[,ncol(gm)][i-1]){
-        if (gm[,ncol(gm)][i] %in% agex){k <- k+0.01}
-              agex <- append(agex,(gm[,ncol(gm)][i]+k))
-      }else{agex <- append(agex,gm[,ncol(gm)][i])} 
-    }
-  }
-  gm$"agex" <- agex
-  #colnames(gm)[20]<- "RC9_gut_group"
-  colnames(gm)[which(names(gm) == "gut")] <- "RC9_gut_group"
-  gm_m <- melt(gm,id.vars=c("id","age","agex"))
-  ranks <- unlist(lapply(gm_m$"age", function(x) getrank(x)))
-  taxa <- unlist(apply(gm_m,1, function(x) if(as.numeric(x[5])>0.065){(x[4])}else{"xOthers"}))
-  gm_m$"ranks" <- as.factor(ranks)
-  gm_m$"taxa" <- as.factor(taxa) 
-  gmx <- within(gm_m,position <- factor(age,levels=names(sort(table(age)))))
-  gmx2 <- aggregate(value ~ id+taxa+age+agex+position+ranks,data=gmx,FUN=sum)
-  colourCount = length(unique(gmx2$"taxa"))
-  #colourCount=25
-  getPalette = colorRampPalette(brewer.pal(9, "Set1"))
-  ggplot(gmx2,aes(x=as.factor(gmx2$agex),y=value,fill=taxa))+scale_shape_discrete(name  ="Genus")+
-    geom_bar(with=1,stat="identity")+
-    scale_fill_manual(name="Genus",values=colorRampPalette(brewer.pal(8, "Dark2"))(colourCount))+
-    scale_x_discrete("Age")+ylab("Proportion")+
-    guides(fill=guide_legend(ncol=10,keywidth = 0.5, keyheight = 0.5))+
-    ggtitle(title)+
-    theme(axis.text.x  = element_text(angle=90, vjust=0.5, size=7),
-          panel.grid.minor=element_blank(),panel.grid.major=element_blank(),
-          legend.position="bottom",legend.box="horizontal",
-          legend.text = element_text(size = 6),
-          legend.title = element_text(size=8, face="bold"),
-          plot.title = element_text(lineheight=.8, face="bold"))#+facet_wrap(~ ranks,nrow=3,scales="free")#+coord_flip()#
-}
-#########
-#* END *#
-#########
-
 #################################
 #* diversity                   *#
 #################################
-calc_o <- sort_df(calc,vars="nseqs")
-for (i in seq(1:NROW(calc_o))){ 
-  sample.name <- gregexpr("[[:digit:]]+[[:upper:]]{3}",calc_o$group[i])
-  sample.name = regmatches(calc_o$group[i],sample.name)
-  calc_o$indiv[i] <- sample.name[[1]][1]
-}
-head(calc_o)
-ggplot(calc_o,aes(x=V3,y=nseqs,color=V3))+geom_point()
-sum <- merge(as.data.frame(calc_o),as.data.frame(design),by.x="indiv",by.y="V1")
-sum <- sort_df(sum,vars="V3")
-ggplot(sum,aes(x=V3,y=nseqs,color=V2))+geom_point()+
-  geom_hline(aes(yintercept=mean(sum$nseqs)),col="red",linetype="dashed")+
-  xlab("Individuals age")+
-  scale_colour_hue(name="Gender",breaks=c("female", "male"),labels=c("Female", "Male"),l=50)  # Legend label, use darker colors
-#ggplot(sum,aes(x=V3,y=sobs,col=V2))+geom_point()+ylab("OTUs observed")+xlab("Individuals age")
 
 
-#Normalized
-for (i in seq(1:NROW(calcN))){ 
-  sample.name <- gregexpr("[[:digit:]]+[[:upper:]]{3}",calcN$group[i])
-  sample.name = regmatches(calcN$group[i],sample.name)
-  calcN$indiv[i] <- sample.name[[1]][1]
-}
-head(calcN)
-N <- merge(as.data.frame(calcN),as.data.frame(design),by.x="indiv",by.y="V1")
-head(N)
-N <- sort_df(N,vars="sobs")
-plot(N$sobs)
-ggplot(N,aes(x=V3,y=sobs,col=V2))+geom_point()+ylab("OTUs observed")+xlab("Individuals age")+
-  scale_colour_hue(name="Gender",breaks=c("female", "male"),labels=c("Female", "Male"),l=50)+  # Legend label, use darker colors
-  stat_smooth(method="lm")+ facet_grid(.~V2,margins=TRUE)
-ggplot(N,aes(x=V3,y=sobs,col=V2))+geom_point()+ylab("OTUs observed")+xlab("Individuals age")+
-  scale_colour_hue(name="Gender",breaks=c("female", "male"),labels=c("Female", "Male"),l=50)+  # Legend label, use darker colors
-  stat_smooth(method="loess",formula=y~ns(x,4))+ facet_grid(.~V2,margins=TRUE)
+#############################
+## Colector && Rarefaction ##
 
-                   
+#sobs.df <- OTUs(obs_files) # Colector curve using Observed OTUs
+
+## Colector && Rarefaction ##
+rarefaction <- read.table(paste(files.path,'16s.an.groups.rarefaction',sep=''),header=T,sep="\t")
+rarefaction$X <- NULL
+rare.df <- data.frame("numsampled"=rarefaction[1:which(rarefaction[1]==15000),1])  # Rarefaction curve calculated using Observed OTUs
+for (i in seq(from=1,to=length(rarefaction[,-1]),by=3)){rare.df <- cbind(rare.df,rarefaction[1:which(rarefaction[1]==15000),-1][i])}
+rare.graph(rare.df,by.g=T,lg=T,savef=plots)
+
+##Rarefaction subsample - normalized
+rarefactionN <- read.table(paste(files.path,'16S.an.0.03.subsample.groups.rarefaction',sep=''),header=T,sep="\t")
+rarefactionN$X <- NULL
+raren.df <- rarefactionN[1]  # Rarefaction curve calculated using Observed OTUs
+for (i in seq(from=1,to=length(rarefactionN[,-1]),by=3)){raren.df <- cbind(raren.df,rarefactionN[,-1][i])}
+rare.graph(raren.df,by.g=T,lg=F)
+
+######
+# End #
+#######
 
 ##Alpha diversity normalized
-# invsimpson
-N$logInvS <- log2(N$invsimpson)
-ggplot(N,aes(x=V3,y=invsimpson,col=V2))+geom_point()+ylab("Relative alpha diversity (invSimpson)")+
-  xlab("Individuals age")+scale_colour_hue(name="Gender",breaks=c("female", "male"),labels=c("Female", "Male"),l=50)+
-  stat_smooth(method="lm")+facet_grid(.~V2,margins=TRUE)
+# invsimpson and Shannon entropy
+
+idxs <- read.table(paste(files.path,'16s.an.groups.summary',sep=''),header=T,sep="\t") # importing summary file with all indexes
+design <- read.table(paste(files.path,'design.txt',sep=''),header=T,sep="\t",row.names=1)
+idxs$X <- NULL
+divs <- add.GenderAge(idxs,design,colname="group")
+div.graphs(divs,savef=plots)
 
 
+############################################
+#* Data filtering and Taxonomic Analysis  *#
+############################################
+
+source("/home/torres/Documents/Projects/Metagenome/bin/rscripts/16sFunctions.R")
+taxonomy <- read.table(paste(files.path,'16s.an.cons.taxonomy',sep=''),header=T,sep="\t")
+counts <- read.table(paste(files.path,'16s.an.shared',sep=''),header=T,sep="\t")
+counts$X <- NULL
+idxs <- read.table(paste(files.path,'16s.an.groups.summary',sep=''),header=T,sep="\t") # importing summary file with all indexes
+design <- read.table(paste(files.path,'design.txt',sep=''),header=T,sep="\t",row.names=1)
+idxs$X <- NULL
+
+raw_counts <- add.GenderAge(counts[,2:3],design,colname="Group") # retrieve ID,Gender,Age,Age.group info
+raw_counts$numOtus <- NULL
+raw_counts <- merge(raw_counts,counts,by="Group",all.x=T)
+
+min_bin_len <- otu.filtering(taxonomy,qval=0.85,nval=100,plots=F) ## for more info check the function... update for plots
+
+##################################
+## *  New files from filter  * ##
+################################
+newtax <- taxonomy[taxonomy$Size>=min_bin_len,]
+newraw_counts <- raw_counts[,-c(1,7,8)][,newtax$OTU]
+rownames(newraw_counts) <- raw_counts[,1]
+
+#################
+# * Tax. plots #
+###############
+
+rdata <- newraw_counts[,-c(1:5)]
+read_retained <- sum(as.numeric(rdata))/sum(as.numeric(unlist(raw_counts[,-c(1:8)]))) # 0.9717457
+
+# get taxa category
+rdata["phylla",] <- unlist(lapply(colnames(rdata),function(x) taxa(x,2))) 
+rdata["genus",] <- unlist(lapply(colnames(rdata),function(x) taxa(x,6)))
+rdata["family",] <- unlist(lapply(colnames(rdata),function(x) taxa(x,5)))
+
+write.table(rdata,paste(send.to,"rdata",sep=""),sep="\t",col.names=T,row.names=T,quote="")
+rdata[is.na(rdata)] <- "unclassified"
+write.table(rdata,paste(send.to,"rdata_un",sep=""),sep="\t",col.names=T,row.names=T,quote="")
+
+phylla.raw <- rdata
+genus.raw <- rdata
+family.raw <- rdata
+
+## Removing unclasified taxlevels
+for (i in seq(1:length(rdata["phylla",]))){
+  if(rdata["phylla",i]=="unclassified") phylla.raw[,colnames(rdata[i])] <- NULL
+  if(rdata["family",i]=="unclassified") family.raw[,colnames(rdata[i])] <- NULL
+  if(rdata["genus",i]=="unclassified") genus.raw[,colnames(rdata[i])] <- NULL
+}
+#sum(data)/sum(rdata)
+source("/home/torres/Documents/Projects/Metagenome/bin/rscripts/16sFunctions.R")
+#################
+##** Phylla **##
+
+## without unclassified
+phylla.dfs <-  getTaxGenderDF(df.raw=phylla.raw,taxlevel="phylla",design=design)
+tax_graph(phylla.dfs$all,taxlevel="Phylla",savef=plots,ids=F)
+## with unclassified
+phylla.dfs.plus <-  getTaxGenderDF(df.raw=rdata,taxlevel="phylla",design=design)
+tax_graph(phylla.dfs.plus$all,taxlevel="Phylla",savef=plots,ids=F)
+
+#############
+# * Famlily
+
+## without unclassified
+family.dfs <-  getTaxGenderDF(df.raw=family.raw,taxlevel="family",design=design)
+tax_graph(family.dfs$all,taxlevel="Families",savef=plots,ids=F)
+## with unclassified
+family.dfs.plus <-  getTaxGenderDF(df.raw=rdata,taxlevel="family",design=design)
+tax_graph(family.dfs.plus$all,taxlevel="Families",savef=plots,ids=F)
+
+###############
+##** GENUS **##
+
+## without unclassified
+genus.dfs <-  getTaxGenderDF(df.raw=genus.raw,taxlevel="genus",design=design)
+tax_graph(genus.dfs$all,taxlevel="Genus",savef=plots,ids=F)
+## with unclassified
+genus.dfs.plus <-  getTaxGenderDF(df.raw=rdata,taxlevel="genus",design=design)
+tax_graph(genus.dfs.plus$all,taxlevel="Genus",savef=plots,ids=F)
+
+####
+dim(phylla.raw)
+dim(family.raw)
+dim(genus.raw)
+
+#####################################################################################
+# * Compositional Data treatment; Outliers, strong PCA and Discriminant analysis * ##
+#####################################################################################
+df.list <- phylla.dfs
+taxlevel <- "Phylla"
+cpanalysis(df.list,taxlevel,savef=plots){
 
 #################################
 #* Networks metrics graphs     *#
@@ -238,14 +212,33 @@ eigc$mean <- eigcm
 ggplot(data=eigc,aes(X,mean))+geom_point()+ylab("mean_eigenvector_centrality")
 
 
+
+
+
+
+
+
+
+#################
+##### Others ####
+
 #################################
 #* Reads in OTU - Distribution *#
 #################################
 
+source("/home/torres/Documents/Projects/Metagenome/bin/rscripts/16sFunctions.R")
+taxonomy <- read.table(paste(files.path,'16S.an.cons.taxonomy',sep=''),header=T,sep="\t")
+counts <- read.table(paste(files.path,'16s.an.shared',sep=''),header=T,sep="\t")
+counts$X <- NULL
 head(counts[,1:5])
-tcount <- t(counts[,4:ncol(counts)])
-colnames(tcount) <- counts[,2]
-head(tcount[,1:5])
+
+df <- add.GenderAge(counts[,2:3],design,colname="Group") # retrieve ID,Gender,Age,Age.group info
+df$numOtus <- NULL
+df <- merge(df,counts,by="Group",all.x=T)
+
+tdf <- t(df[,8:ncol(df)])
+colnames(tdf) <- df$
+  head(tcount[,1:5])
 tcount <- as.data.frame(tcount)
 head(tcount[,1:5])
 
@@ -308,38 +301,7 @@ head(count[,1:5])
 cnt <- melt(count)
 head(cnt)
 
-##################
-#* Calculations *#
-##################
 
-#############################
-## Colector && Rarefaction ##
-
-sobs.df <- OTUs(obs_files) # Colector curve using Observed OTUs
-
-rarefaction$X <- NULL
-rare.df <- rarefaction[1]  # Rarefaction curve calculated using Observed OTUs
-for (i in seq(from=1,to=length(rarefaction[,-1]),by=3)){rare.df <- cbind(rare.df,rarefaction[,-1][i])}
-rare.graph(rare.df)
-
-##Rarefaction normalized
-rarefactionN$X <- NULL
-rare.df <- rarefactionN[1]  # Rarefaction curve calculated using Observed OTUs
-for (i in seq(from=1,to=length(rarefactionN[,-1]),by=3)){rare.df <- cbind(rare.df,rarefactionN[,-1][i])}
-#rare.graph(rare.df)
-rare.df[,-1] <- log10(rare.df[,-1])
-rm <- apply(rare.df[,-1],1,mean)
-rstd <- apply(rare.df[,-1],1,sd)
-rare.df$mean <- rm
-rare.df$std <- rstd
-pd <- position_dodge(0.1)
-ggplot(rare.df,aes(x=numsampled,y=mean))+
-  geom_errorbar(aes(ymin=mean-std,ymax=mean+std),width=.2,size=.3,colour="blue",position=pd)+geom_line(position=pd)+
-  geom_point(position=pd, size=2, shape=21, fill="white")+
-  xlab("Reads sampled")+ylab("Log10(Observed OTUs)")+ggtitle("Rarefaction or accumulation curve (Normalized sample 11450)")
-
-# End #
-#######
 
 
 
@@ -353,12 +315,12 @@ males = as.numeric()
 females = as.numeric()
 
 for (i in seq(1:length(otus))){
- #names(otus[1])
- if (grepl("female",names(otus[i]),fixed=T)){
-   females <- rbind(females,otus[i])
-   }else{
-     males <- rbind(males,otus[i])
-   }
+  #names(otus[1])
+  if (grepl("female",names(otus[i]),fixed=T)){
+    females <- rbind(females,otus[i])
+  }else{
+    males <- rbind(males,otus[i])
+  }
 }
 length(males) = length(otus)
 length(females) = length(otus)
@@ -368,12 +330,7 @@ taxa <- taxonomy$Size[taxonomy$Size>1000]
 plot(taxa,pch=16,ylab='No. of Reads',xlab='OTU')
 sum(taxonomy$Size)
 
-## calculators ##
-boxplot(calc$coverage,col='grey',ylab='Coverage')
-boxplot(calc$invsimpson,col='grey',ylab='inv-Simpson')
-boxplot(calc$bergerparker,calc$logseries,calc$geometric,calc$bstick,
-        calc$bstick,xlab=c('bergerparker','logseries','geometric','bstick'))
-boxplot(calc$nseqs,col='grey',ylab='No. of Sequences')
+## keep ##
 
 keep <- otu_ab$taxlevel %in% c("2")
 y <- subset(otu_ab[1:5],otu_ab$taxlevel %in% c("2"))
@@ -395,122 +352,4 @@ sum(taxonomy$Size)
 #######
 
 
-#################################
-#* Taxonomy COA                *#
-#################################
 
-##Filtering ##
-head(counts[,1:5])
-rdata <- counts[,4:(ncol(counts)-1)]
-indivs <- unlist(lapply(counts[,2],function(x) indiv(x)))
-rownames(rdata) <- indivs
-#head(rdata[,(ncol(rdata)-4):ncol(rdata)])
-abotus <- apply(rdata,1,function(x) x>=10)
-#head(abotus[,1:5])
-abotusI <- apply(abotus,1,function(x) table(x)["TRUE"]>=5)
-abotusI[is.na(abotusI)] <- FALSE
-#table(abotusI)
-#head(abotusI)
-rfdata <- t(rdata)
-rfdata <- rfdata[abotusI,]
-#head(rfdata[,1:5])
-dim(rfdata)
-sum(rfdata)/sum(rdata)
-phylla_all <- unlist(lapply(rownames(rfdata),function(x) taxa(x,2)))
-genus_all <- unlist(lapply(rownames(rfdata),function(x) taxa(x,6)))
-#head(phylla)
-noun <- phylla_all!="unclassified"
-noung <- genus_all!="unclassified"
-#head(noun)
-
-##** GENUS **##
-
-## Removing unknown genus
-rfdata <- rfdata[noung,]
-data <- t(rfdata)
-data <- as.data.frame(data)
-dim(data)
-sum(data)/sum(rdata)
-head(data[1:5])
-cnphylla <- unlist(lapply(colnames(data),function(x) taxa(x,2)))
-cngenus <- unlist(lapply(colnames(data),function(x) taxa(x,6)))
-
-rgenus <- data
-colnames(rgenus) <- cngenus
-cng <- unique(cngenus)
-genus <- data.frame(matrix(NA,nrow=NROW(rgenus),ncol=0))
-for (i in 1:length(cng)){
-  genus[cng[i]] <- rowSums(rgenus[colnames(rgenus)%in%(cng[i])])
-}
-genus$"id" <- rownames(rgenus)
-genus <- merge(genus,as.data.frame(design),by.x="id",by.y="V1")
-genus <- sort_df(genus,vars="V3")
-
-## Males!
-genus_male <- subset(genus[,c(1:59,61)],genus$V2=="male")
-genus_graph(genus_male,"Males")
-
-
-gm <- as.matrix(prop.table(as.matrix(genus_male[,c(2:(ncol(genus_male)-1))]),1))
-gm <- as.data.frame(gm)
-gm$"id" <- genus_male$"id"
-gm$"age" <- genus_male$"V3"
-agex <- c()
-k=0
-for (i in seq(1:NROW(gm))){  
-  if (i==1){
-    agex <- append(agex,gm[,ncol(gm)][i])
-  }else{
-    if(gm[,ncol(gm)][i]== gm[,ncol(gm)][i-1]){
-      if (gm[,ncol(gm)][i] %in% agex){k <- k+0.01} 
-      agex <- append(agex,(gm[,ncol(gm)][i]+k))
-    }else{agex <- append(agex,gm[,ncol(gm)][i])} 
-  }
-}
-gm$"agex" <- agex
-#colnames(gm)[20]<- "RC9_gut_group"
-colnames(gm)[which(names(gm) == "gut")] <- "RC9_gut_group"
-gm_m <- melt(gm,id.vars=c("id","age","agex"))
-head(gm_m)
-ranks <- unlist(lapply(gm_m$"age", function(x) getrank(x)))
-taxa <- unlist(apply(gm_m,1, function(x) if(as.numeric(x[5])>0.065){(x[4])}else{"xOthers"}))
-head(gm_m)
-
-gm_m$"ranks" <- as.factor(ranks)
-gm_m$"taxa" <- as.factor(taxa)
-
-gmx <- within(gm_m,position <- factor(age,levels=names(sort(table(age)))))
-head(gmx)
-gmx2 <- aggregate(value ~ id+taxa+age+agex+position+ranks,data=gmx,FUN=sum)
-head(gmx2)
-
-
-colourCount = length(unique(gmx2$"taxa"))
-#colourCount=25
-getPalette = colorRampPalette(brewer.pal(9, "Set1"))
-
-ggplot(gmx2,aes(x=as.factor(gmx2$agex),y=value,fill=taxa))+scale_shape_discrete(name  ="Genus")+
-  geom_bar(with=1,stat="identity")+
-  scale_fill_manual(name="Genus",values=colorRampPalette(brewer.pal(8, "Dark2"))(colourCount))+
-  scale_x_discrete("Age")+ylab("Proportion")+
-  guides(fill=guide_legend(ncol=10,keywidth = 0.5, keyheight = 0.5))+
-  theme(axis.text.x  = element_text(angle=90, vjust=0.5, size=7),
-        panel.grid.minor=element_blank(),panel.grid.major=element_blank(),
-        legend.position="bottom",legend.box="horizontal",
-        legend.text = element_text(size = 4.4),
-        legend.title = element_text(size=8, face="bold"))#+facet_wrap(~ ranks,nrow=3,scales="free")#+coord_flip()#
-
-#geom_point(aes(size=value))+
-#facet_grid(facets=. ~ ranks)
-
-## Females!
-
-genus_female <- subset(genus[,c(1:59,61)],genus$V2=="female")
-
-
-genus_graph(genus_female,"Females")
-
-
-##colnames(sobs.df)[which(names(sobs.df) == "sample.name")] <- sample.name
-#length(x) = length(sobs.df$numsampled)
-#sobs.df <- cbind(sobs.df,x)
