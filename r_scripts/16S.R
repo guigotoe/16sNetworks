@@ -177,9 +177,87 @@ dim(genus.raw)
 #####################################################################################
 # * Compositional Data treatment; Outliers, strong PCA and Discriminant analysis * ##
 #####################################################################################
-df.list <- phylla.dfs
-taxlevel <- "Phylla"
-cpanalysis(df.list,taxlevel,savef=plots){
+df.list <- genus.dfs
+taxlevel <- "Genus"
+cpanalysis(df.list,taxlevel,savef=plots)
+
+
+names(outl) 
+
+#### New Diversity calculators ####
+library(vegan)
+library(MASS)
+
+outl <- outliers(df.list)
+outliers <- outl$outliers
+cp.xgo <- outl$cp.xgo
+exc <- cp.xgo[cp.xgo$mahaDist>outliers$limit,]
+avec.e <- c((ncol(exc)-6):ncol(exc))
+cp.d2 <- exc[,-avec.e]
+iso <- cenLR(cp.d2)
+
+
+cp <- fillzeros(df.list$all,output="count",method="SQ")
+avec <- c((ncol(cp)-5):ncol(cp))
+cp.d <- cp[,-avec]
+cp.dx <- df.list$all[,-avec]
+
+### Ordination Analysis 
+vare.dis <- vegdist(iso)
+vare.mds0 <- isoMDS(vare.dis)
+stressplot(vare.mds0,vare.dis)
+
+ordiplot(vare.mds0,type="t")
+
+vare.mds <- metaMDS(cp.d2,trace=F)
+plot(vare.mds,type="t")
+ef <- envfit(vare.mds,cp.d,permu=999)
+plot(vare.mds,display="sites")
+plot(ef,p.max=0.01)
+##
+vare.pca <- rda(cp.d2)
+vare.pca
+plot(vare.pca)
+sum(apply(cp.d2,2,var))
+biplot(vare.pca,scaling=-1)
+
+vare.pca <- rda(cp.d2,scale=T)
+vare.pca
+plot(vare.pca,scaling=3)
+
+## For Detrended correspondence analysis it is often said that 
+## if the axis length is shorter than two units, the data are linear
+## and PCA should be used -- Folklore based not on research
+
+vare.dca <- decorana(cp.d) 
+shnam <- (names(cp.d))
+pl <- plot(vare.dca,dis="sp")
+identify(pl,"sp",labels=shnam)
+stems <- colSums(cp.d)
+plot(vare.dca,dis="sp",type="n")
+sel <- orditorp(vare.dca,dis="sp",lab=shnam,priority=stems,pcol="gray",pch="+")
+plot(vare.dca,display="sites")
+
+### constrained ordination
+
+vare.cca <- cca(cp.dx~age,cp)
+
+
+
+H <- diversity(cp.d)          # Shannon index
+J <- H/log(specnumber(cp.d))  # Pielou's eveness
+k <- sample(nrow(cp.d))
+R <- renyi(cp.d[k,])
+alpha <- fisher.alpha(cp.d)
+
+srar <- rarefy(cp.dx,min(rowSums(cp.dx)))
+S2 <- rarefy(cp.dx,2)
+
+div.graphs(divs,savef=plots)
+
+
+
+
 
 #################################
 #* Networks metrics graphs     *#
@@ -238,7 +316,7 @@ df <- merge(df,counts,by="Group",all.x=T)
 
 tdf <- t(df[,8:ncol(df)])
 colnames(tdf) <- df$
-  head(tcount[,1:5])
+head(tcount[,1:5])
 tcount <- as.data.frame(tcount)
 head(tcount[,1:5])
 

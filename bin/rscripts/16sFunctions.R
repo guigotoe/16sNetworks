@@ -485,11 +485,11 @@ change.name <- function(df){
   }
 }
 
-cpanalysis <- function(df.list,taxlevel,savef=NULL,title="cpanalysis"){
-  #phylla.cpd <- phylla.dfs.plus$all # genus.dfs <-  getTaxGenderDF(df.raw=genus.raw,taxlevel="genus",design=design)
-  #phylla.cpd <- fillzeros(phylla.dfs.plus$all,output="counts",method="SQ")
-  #phylla.cpd <- fillzeros(phylla.dfs$all,output="counts",method="SQ")
-  
+################
+#df.list <- family.dfs
+#taxlevel <- "Family"
+
+outliers <- function(df.list,method="SQ",gy.gender=c("male","female")){
   cp <- fillzeros(df.list$all,output="count",method="SQ")
   avec <- c((ncol(cp)-5):ncol(cp))
   cp.x <- cp
@@ -498,10 +498,9 @@ cpanalysis <- function(df.list,taxlevel,savef=NULL,title="cpanalysis"){
     if (sum(k)/NROW(cp)<0.1) cp.x[,i] <- NULL
   }
   
-  g <- c("male","female")
+  g <- gy.gender
   cp.xg <- subset(cp.x,cp.x$gender%in%g)
   avec.x <- c((ncol(cp.xg)-5):ncol(cp.xg))
-  #cp.xg <- cp.x
   
   #########################
   #   *  Outliers  *   ###
@@ -513,10 +512,18 @@ cpanalysis <- function(df.list,taxlevel,savef=NULL,title="cpanalysis"){
   
   outliers <- outCoDa(cp.xg[,-avec.x],method="robust")
   cp.xgo <- cbind(cp.xg,mahaDist=outliers$mahalDist)
+  return(list(outliers=outliers,cp.xgo=cp.xgo))
+  
+}
+
+cpanalysis <- function(df.list,taxlevel,savef=NULL,title="cpanalysis"){
+  require(robCompositions)
+  outl <- outliers(df.list)
+  outliers <- outl$outliers
+  cp.xgo <- outl$cp.xgo
   
   colourCount = length(levels(as.factor(cp.xgo$age.group)))
   col <- colorRampPalette(brewer.pal(8, "Set1"))(colourCount)
-  
   ggplot(cp.xgo,aes(x=id,y=mahaDist,colour=age.group))+
     geom_point(aes(shape=as.factor(cp.xgo$gender)),size=3.5,colour='black')+
     geom_point(aes(shape=as.factor(cp.xgo$gender)),size=2.5)+
@@ -525,6 +532,8 @@ cpanalysis <- function(df.list,taxlevel,savef=NULL,title="cpanalysis"){
     scale_shape(name="Gender")+
     ylab("Robust Mahalanobis distance")+xlab("Samples")+
     geom_hline(yintercept=outliers$limit,linetype="dashed",color="red")
+  
+  if(!is.null(savef)) ggsave(paste(savef,title,'_',taxlevel,'_outliers.pdf',sep=""),width=12, height=8)
   
   exc <- cp.xgo[cp.xgo$mahaDist>outliers$limit,]#5,]# df just outliers
   
@@ -551,6 +560,8 @@ cpanalysis <- function(df.list,taxlevel,savef=NULL,title="cpanalysis"){
     scale_shape_discrete(name="Ratio",labels=c("all.o/all.g","oF.g/all.g","oM.g/all.g","oF.g/aF.g","oM.g/aM.g"))+
     ggtitle("Proportion of outliers by age group")+facet_wrap(~df)
   
+  if(!is.null(savef)) ggsave(paste(savef,title,'_',taxlevel,'_outliersProp.pdf',sep=""),width=12, height=8)
+  
   ### confirmation with replicated libraries ####
   dups <- read.table(paste(files.path,'duplicated.txt',sep=''),header=F,sep="\t")
   dups$counter <- rep(0,NROW(dups))
@@ -568,20 +579,15 @@ cpanalysis <- function(df.list,taxlevel,savef=NULL,title="cpanalysis"){
   
   dup.exc.prc <- c(Prop.both.libs=round(1-(length(dups$counter[dups$counter==1])/NROW(dups)),2),
                    Num.both.libs=(NROW(dups)-length(dups$counter[dups$counter==1])),Num.libs=NROW(dups))
-  dup.exc.prc
+  print(dup.exc.prc)
   #####
-  
-  cp.ya <- cp.xgo
-  avec.y<- c((ncol(cp.y)-6):ncol(cp.y))
-  cp.yo <- cp.xgo[!outliers$outlierIndex,]
-  
-  cp.y <- cp.ya
-  
+  #cp.yo = cp.xgo[!outliers$outlierIndex,]
+  #cp.y = cp.ya
+  #cp.ya = cp.xgo
+  cp.y <- cp.xgo
+  avec.y <- c((ncol(cp.y)-6):ncol(cp.y))
   pca <- pcaCoDa(cp.y[-avec.y],method="robust")
-  
   pca$explainedVar <- pca$princompOutputClr$sdev^2/sum(pca$princompOutputClr$sdev^2)
-  #plot(pca)
-  
   ggplot(as.data.frame(pca$scores),aes(x=Comp.1,y=Comp.2,colour=cp.y$age.group))+
     geom_hline(yintercept = 0,colour="gray65")+geom_vline(xintercept = 0,colour="gray65")+
     geom_point(aes(colour=cp.y$age.group, shape=cp.y$gender,group=cp.y$age.group),size=3)+
@@ -590,6 +596,8 @@ cpanalysis <- function(df.list,taxlevel,savef=NULL,title="cpanalysis"){
     xlab(paste("PCA1 (clr-robust) ",round(pca$explainedVar[1]*100,2),"%",sep=''))+
     ylab(paste("PCA2 (clr-robust) ",round(pca$explainedVar[2]*100,2),"%",sep=''))+
     ggtitle(paste("PCA plot of idividuals - by ",taxlevel,sep=''))
+  
+  if(!is.null(savef)) ggsave(paste(savef,title,'_',taxlevel,'_pca.pdf',sep=""),width=12, height=8)
   
   ## Circle of correlations
   
@@ -615,7 +623,8 @@ cpanalysis <- function(df.list,taxlevel,savef=NULL,title="cpanalysis"){
     geom_hline(yintercept = 0, colour = "gray65") + geom_vline(xintercept = 0,colour = "gray65") + 
     xlim(-1.1, 1.1) + ylim(-1.1, 1.1) + labs(x = "PCA1 aixs",y = "PCA2 axis") + 
     ggtitle("Circle of correlations")
-  
+
+  if(!is.null(savef)) ggsave(paste(savef,title,'_',taxlevel,'_corrcircle.pdf',sep=""),width=8, height=8)
   ## Discriminant analysis by Fisher rule
   #y <- cp.y[-avec.y]
   #grp<- cp.y$age.group
