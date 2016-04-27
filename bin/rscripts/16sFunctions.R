@@ -296,30 +296,43 @@ add.GenderAge <- function(df,design,colname="group"){
 # the following give to you the
 # minimum OTU bin length. Below that assumed spourious
 ###
-otu.filtering <- function(taxonomy,qval,nval=100,plots=F){
-  otu_size_dist <- data.frame("Size"=character(n),"OTUs"= numeric(n),"more_OTUs"= numeric(n),"less_OTUs"= numeric(n),stringsAsFactors = FALSE)
-  for (i in seq(1:n)){
+otu.filtering <- function(taxonomy,qval,nval=100,savef=NULL){
+  otu_size_dist <- data.frame("Size"=character(nval),"OTUs"= numeric(nval),"more_OTUs"= numeric(nval),"less_OTUs"= numeric(nval),stringsAsFactors = FALSE)
+  for (i in seq(1:nval)){
     otu_size_dist[i,] <- c(i,table(taxonomy[2]==i)["TRUE"],table(taxonomy[2]>=i)["TRUE"],table(taxonomy[2]<=i)["TRUE"])
   }
   threshold <- quantile(idxs$ace,probs=qval)  ## Estimated population size based on rare OTUs calculated by ace
   otu_size_dist[nval,]$Size <- paste(nval,'+/-',sep=" ")
   min_read_len <- tail(which(otu_size_dist$more_OTUs >= threshold),1)
-  #threshold
+  print(paste('Bin size threshold:',threshold,sep=' '))
   #otu_size_dist[which(otu_size_dist$more_OTUs >= threshold),]
   trim_otus <- otu_size_dist[min_read_len:NROW(otu_size_dist),3]
   retained.info <- sum(taxonomy$Size[taxonomy$Size>=as.integer(otu_size_dist$Size[min_read_len])])/sum(taxonomy$Size) # retained info 0.9824082
-  if (plots == T){
+  print(paste("Information retainded: ",retained.info,sep=""))
+  if (!is.null(savef)){
     require(fitdistrplus)
-    
+    write.table(otu_size_dist,file=paste(savef,'otu_size_lens.txt',sep=''),row.names=F,sep="\t")
+    ##
+    pdf(file=paste(savef,"OTU_size_dist.pdf",sep=""))
     plot(otu_size_dist[,3],main="Distribution of OTU sizes",ylab="Num. OTUs with more than 'x' Num. sequences",xlab="Num. sequences")
     abline(v=otu_size_dist$Size[min_read_len],col="red",lty=2)
+    dev.off()
     ##
+    ##
+    pdf(file=paste(savef,"OTU_size_dist_trim.pdf",sep=""))
     plot(trim_otus,main="Distribution of OTU sizes - trimmed data",ylab="Num. OTUs with more than 'x' Num. sequences",xlab="Num. sequences")
+    dev.off()
     ##
     otu_dist <- fitdist(otu_size_dist[,3],"lnorm")
+    ##
+    pdf(file=paste(savef,"otu_dist.pdf",sep=""))
     plotdist(otu_size_dist[,3],"lnorm",para=list(meanlog=otu_dist$estimate[1],sdlog=otu_dist$estimate[2]))
+    dev.off()
     otu_trim_dist <- fitdist(trim_otus,"lnorm")
+    ##
+    pdf(file=paste(savef,"otu_dist_trim.pdf",sep=""))
     plotdist(trim_otus,"lnorm",para=list(meanlog=otu_trim_dist$estimate[1],sdlog=otu_trim_dist$estimate[2]))
+    dev.off()
   }
   return(as.integer(otu_size_dist$Size[min_read_len]))
 }
@@ -404,16 +417,64 @@ fillzeros <- function(df,output="prop",method="SQ"){
   return(gm)
 }
 
-#df <- phylla.dfs$all
+
+#taxon="Ruminococcus"
+
+taxon_graph <- function(df,taxon,savef=NULL,method="SQ",ids=F){
+  plot <- function(gm.g,title,savef=NULL){
+    x_labels <- gm[,c("agex","age","id")][order(gm[,c("agex","age","id")][,"agex"]),]
+    if (ids==T){ 
+      x_lab <- unlist(apply(x_labels,1,function(x) paste(x[3],x[2],sep="_")))
+      idslab <- '_ids'
+    }else{
+      x_lab <- x_labels$age
+      idslab <- ''
+    }  
+    ggplot(gm.g,aes(x=as.factor(agex),y=gm.g[,taxon],fill=age.group))+geom_bar(stat="identity")+
+      scale_fill_brewer(name="Age groups",palette="Set2") + #limits=c(levels(gmx2[1]),levels(gmx2[length(levels(gmx2))]))
+      scale_x_discrete("Age",labels=as.character(x_lab))+ylab("Proportion")+
+      ggtitle(paste(title,taxon,sep=" - "))+
+      theme(axis.text.x  = element_text(angle=90, vjust=0.5, size=8),
+        panel.grid.minor=element_blank(),panel.grid.major=element_blank(),
+        legend.position="bottom",legend.box="horizontal",
+        legend.text = element_text(size=10),
+        legend.title = element_text(size=12, face="bold"),
+        plot.title = element_text(lineheight=.8, face="bold"))
+    if(!is.null(savef)) ggsave(paste(savef,taxon,'_',title,idslab,'.pdf',sep=""),width=12, height=8)
+    
+    ggplot(gm.g,aes(x=as.factor(age.group),y=gm.g[,taxon],fill=age.group))+geom_boxplot()+
+      geom_jitter(position=position_jitter(width=.2), size=1)+
+      scale_fill_brewer(name="Age groups",palette="Set2") + #limits=c(levels(gmx2[1]),levels(gmx2[length(levels(gmx2))]))
+      scale_x_discrete("")+ylab("Proportion")+
+      ggtitle(paste(title,taxon,sep=" - "))+
+      theme(axis.text.x  = element_text(angle=90, vjust=0.5, size=8),
+            panel.grid.minor=element_blank(),panel.grid.major=element_blank(),
+            legend.position="bottom",legend.box="horizontal",
+            legend.text = element_text(size=10),
+            legend.title = element_text(size=12, face="bold"),
+            plot.title = element_text(lineheight=.8, face="bold"))
+    if(!is.null(savef)) ggsave(paste(savef,taxon,'_',title,idslab,'_boxplot.pdf',sep=""),width=12, height=8)
+    }
+  gm <- fillzeros(df,output="prop",method=method)
+  for (g in levels(as.factor(gm$gender))){
+    title <- paste(toupper(substring(as.character(g),1,1)),substring(as.character(g),2),sep="")
+    gm.g <- subset(gm,gm$gender==g) ## each gender
+    
+    plot(gm.g,title,savef)
+  }
+  plot(gm,title="All",savef)
+}
+
+#df <- family.dfs$all
 #title <- "Males"
 #limit=0.06
-#taxlevel="Phylla"
+#taxlevel="Family"
 #method="SQ"
-#savef=NULL
+#savef=plots
 #ids=F
 #output="prop"
 
-tax_graph <- function(df,limit=0.06,taxlevel="Genus",savef=NULL,ids=F,method="SQ"){
+tax_graph <- function(df,limit=0.06,taxlevel="Genus",savef=NULL,ids=F,method="SQ",taxon=NULL){
   gm <- fillzeros(df,output="prop",method=method)
   colnames(gm)[which(names(gm) == "gut")] <- "RC9_gut_group"
   colnames(gm)[which(names(gm) == "Incertae")] <- "Incertae_Sedis"
@@ -445,23 +506,24 @@ tax_graph <- function(df,limit=0.06,taxlevel="Genus",savef=NULL,ids=F,method="SQ
   }else palette <- c(colorRampPalette(brewer.pal(8, "Set1"))(9),colorRampPalette(brewer.pal(8, "Set3"))(9),
                      colorRampPalette(brewer.pal(8, "Accent"))(colourCount-19),"#3D3D3D")
   
-  ## Ploting by genders
-  # labels for x axis
   
-  for (g in levels(as.factor(gm$gender))){
-    title <- paste(toupper(substring(as.character(g),1,1)),substring(as.character(g),2),sep="")
-    gm.g <- subset(gm,gm$gender==g) ## each gender
-    x_labels <- gm.g[,c("agex","age","id")][order(gm.g[,c("agex","age","id")][,"agex"]),]
-    if (ids==T){ x_lab <- unlist(apply(x_labels,1,function(x) paste(x[3],x[2],sep="_")))
-    }else  x_lab <- x_labels$age
-    gmx2.g <- subset(gmx2,gmx2$gender==g) ## each gender
+  plot <- function(gm.g,title,taxlevel,palette,savef=NULL,ids=F){
+    x_labels <- gm[,c("agex","age","id")][order(gm[,c("agex","age","id")][,"agex"]),]
+    if (ids==T){ 
+      x_lab <- unlist(apply(x_labels,1,function(x) paste(x[3],x[2],sep="_")))
+      idslab <- '_ids'
+    }else {
+      x_lab <- x_labels$age
+      idslab <- ''
+      }
+    #gmx2.g <- subset(gmx2,gmx2$gender==g) ## each gender
   
     # to be color consistente 
-    e <- length(table(gmx2.g$taxa)[table(gmx2.g$taxa)==0])
-    if (e!=0) palette.g <- palette[-c((length(palette)-e):(length(palette)-1))]
-    else palette.g <- palette
+    e <- length(table(gm.g$taxa)[table(gm.g$taxa)==0])
+    if (e!=0) {palette.g <- palette[-c((length(palette)-e):(length(palette)-1))]
+    }else palette.g <- palette
     
-    ggplot(gmx2.g, aes(x=as.factor(gmx2.g$agex),y=value,fill=taxa))+
+    ggplot(gm.g, aes(x=as.factor(agex),y=value,fill=taxa))+
       geom_bar(stat="identity",colour="black")+
       scale_fill_manual(name=taxlevel,values=palette.g) + #limits=c(levels(gmx2[1]),levels(gmx2[length(levels(gmx2))]))
       scale_x_discrete("Age",labels=as.character(x_lab))+ylab("Proportion")+
@@ -473,9 +535,35 @@ tax_graph <- function(df,limit=0.06,taxlevel="Genus",savef=NULL,ids=F,method="SQ
             legend.text = element_text(size=10),
             legend.title = element_text(size=12, face="bold"),
             plot.title = element_text(lineheight=.8, face="bold"))
-    if(!is.null(savef)) ggsave(paste(savef,title,'_',taxlevel,'.pdf',sep=""),width=12, height=8)
+    if(!is.null(savef)) ggsave(paste(savef,title,'_',taxlevel,idslab,'.pdf',sep=""),width=12, height=8)
+    
+    ggplot(gm.g,aes(x=as.factor(age.group),y=value,fill=taxa))+geom_boxplot()+
+      scale_fill_manual(name=taxlevel,values=palette.g) + #limits=c(levels(gmx2[1]),levels(gmx2[length(levels(gmx2))]))
+      scale_x_discrete("")+ylab("Proportion")+
+      ggtitle(paste(title,sep=""))+
+      theme(axis.text.x  = element_text(angle=90, vjust=0.5, size=8),
+            panel.grid.minor=element_blank(),panel.grid.major=element_blank(),
+            legend.position="bottom",legend.box="horizontal",
+            legend.text = element_text(size=10),
+            legend.title = element_text(size=12, face="bold"),
+            plot.title = element_text(lineheight=.8, face="bold"))
+    if(!is.null(savef)) ggsave(paste(savef,title,'_',taxlevel,idslab,'_boxplot.pdf',sep=""),width=12, height=8)
   }
+  
+  ## Ploting by genders
+  # labels for x axis
+  
+  for (g in levels(as.factor(gm$gender))){
+    title <- paste(toupper(substring(as.character(g),1,1)),substring(as.character(g),2),sep="")
+    #gm.g <- subset(gm,gm$gender==g) ## each gender
+    gmx2.g <- subset(gmx2,gmx2$gender==g)
+    plot(gmx2.g,title,taxlevel=taxlevel,palette=palette,savef=savef)
+  }
+  plot(gmx2,title="All",taxlevel=taxlevel,palette=palette,savef=savef)
 }
+
+levels(as.factor(gmx2$age))
+
 
 change.name <- function(df){
   for (i in seq(1:NROW(df))){ 

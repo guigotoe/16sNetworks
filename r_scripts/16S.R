@@ -18,6 +18,7 @@ library(scales)
 library(vegan)
 library(ade4)
 library(RColorBrewer) 
+library(dplyr)
 
 source("/home/torres/Documents/Projects/Metagenome/bin/rscripts/16sFunctions.R")
 
@@ -102,12 +103,13 @@ raw_counts <- add.GenderAge(counts[,2:3],design,colname="Group") # retrieve ID,G
 raw_counts$numOtus <- NULL
 raw_counts <- merge(raw_counts,counts,by="Group",all.x=T)
 
-min_bin_len <- otu.filtering(taxonomy,qval=0.85,nval=100,plots=F) ## for more info check the function... update for plots
+min_bin_len <- otu.filtering(taxonomy,qval=0.85,nval=100,savef=plots) ## for more info check the function... update for plots
 
 ##################################
 ## *  New files from filter  * ##
 ################################
 newtax <- taxonomy[taxonomy$Size>=min_bin_len,]
+raw_counts.trim <- raw_counts[,newtax$OTU]
 newraw_counts <- raw_counts[,-c(1,7,8)][,newtax$OTU]
 rownames(newraw_counts) <- raw_counts[,1]
 
@@ -116,29 +118,42 @@ rownames(newraw_counts) <- raw_counts[,1]
 ###############
 
 rdata <- newraw_counts[,-c(1:5)]
-read_retained <- sum(as.numeric(rdata))/sum(as.numeric(unlist(raw_counts[,-c(1:8)]))) # 0.9717457
+#read_retained <- sum(as.numeric(rdata))/sum(as.numeric(unlist(raw_counts[,-c(1:8)]))) # 0.9717457
 
 # get taxa category
+rdata["Bac"] <- unlist(lapply(colnames(rdata),function(x) taxa(x,1)))
 rdata["phylla",] <- unlist(lapply(colnames(rdata),function(x) taxa(x,2))) 
 rdata["genus",] <- unlist(lapply(colnames(rdata),function(x) taxa(x,6)))
 rdata["family",] <- unlist(lapply(colnames(rdata),function(x) taxa(x,5)))
 
-write.table(rdata,paste(send.to,"rdata",sep=""),sep="\t",col.names=T,row.names=T,quote="")
+write.table(rdata,paste(plots,"rdata",sep=""),sep="\t",col.names=T,row.names=T)
 rdata[is.na(rdata)] <- "unclassified"
-write.table(rdata,paste(send.to,"rdata_un",sep=""),sep="\t",col.names=T,row.names=T,quote="")
+#rdata[rdata=="Unknown"] <- "unclassified"
+write.table(rdata,paste(plots,"rdata_un",sep=""),sep="\t",col.names=T,row.names=T)
 
 phylla.raw <- rdata
 genus.raw <- rdata
 family.raw <- rdata
 
-## Removing unclasified taxlevels
+## Removing unclasified phylla or unknown
 for (i in seq(1:length(rdata["phylla",]))){
-  if(rdata["phylla",i]=="unclassified") phylla.raw[,colnames(rdata[i])] <- NULL
-  if(rdata["family",i]=="unclassified") family.raw[,colnames(rdata[i])] <- NULL
-  if(rdata["genus",i]=="unclassified") genus.raw[,colnames(rdata[i])] <- NULL
+  if(rdata["phylla",i]=="unclassified"){
+    phylla.raw[,colnames(rdata[i])] <- NULL
+    family.raw[,colnames(rdata[i])] <- NULL
+    genus.raw[,colnames(rdata[i])] <- NULL
+  }
+  #if(rdata["family",i]=="unclassified") 
+  #if(rdata["genus",i]=="unclassified") 
 }
-#sum(data)/sum(rdata)
+write.table(phylla.raw,paste(plots,"phylla.raw.txt",sep=""),col.names=T,row.names=T)
+
+#sum(phylla.raw)/sum(rdata)
 source("/home/torres/Documents/Projects/Metagenome/bin/rscripts/16sFunctions.R")
+############
+## by taxon
+
+rumi.dfs <- getTaxGenderDF(df.raw=rumi,taxlevel="phylla",design=)
+
 #################
 ##** Phylla **##
 
@@ -146,28 +161,32 @@ source("/home/torres/Documents/Projects/Metagenome/bin/rscripts/16sFunctions.R")
 phylla.dfs <-  getTaxGenderDF(df.raw=phylla.raw,taxlevel="phylla",design=design)
 tax_graph(phylla.dfs$all,taxlevel="Phylla",savef=plots,ids=F)
 ## with unclassified
-phylla.dfs.plus <-  getTaxGenderDF(df.raw=rdata,taxlevel="phylla",design=design)
-tax_graph(phylla.dfs.plus$all,taxlevel="Phylla",savef=plots,ids=F)
+#phylla.dfs.plus <-  getTaxGenderDF(df.raw=rdata,taxlevel="phylla",design=design)
+#tax_graph(phylla.dfs.plus$all,taxlevel="Phylla",savef=plots,ids=F)
 
 #############
 # * Famlily
 
-## without unclassified
+## with unclassified
 family.dfs <-  getTaxGenderDF(df.raw=family.raw,taxlevel="family",design=design)
 tax_graph(family.dfs$all,taxlevel="Families",savef=plots,ids=F)
 ## with unclassified
-family.dfs.plus <-  getTaxGenderDF(df.raw=rdata,taxlevel="family",design=design)
-tax_graph(family.dfs.plus$all,taxlevel="Families",savef=plots,ids=F)
+#family.dfs.plus <-  getTaxGenderDF(df.raw=rdata,taxlevel="family",design=design)
+#tax_graph(family.dfs.plus$all,taxlevel="Families",savef=plots,ids=F)
 
 ###############
 ##** GENUS **##
 
-## without unclassified
+## with unclassified
 genus.dfs <-  getTaxGenderDF(df.raw=genus.raw,taxlevel="genus",design=design)
 tax_graph(genus.dfs$all,taxlevel="Genus",savef=plots,ids=F)
 ## with unclassified
-genus.dfs.plus <-  getTaxGenderDF(df.raw=rdata,taxlevel="genus",design=design)
-tax_graph(genus.dfs.plus$all,taxlevel="Genus",savef=plots,ids=F)
+#genus.dfs.plus <-  getTaxGenderDF(df.raw=rdata,taxlevel="genus",design=design)
+#tax_graph(genus.dfs.plus$all,taxlevel="Genus",savef=plots,ids=F)
+
+## by taxon ##
+taxon_graph(genus.dfs$all,taxon="Ruminococcus",savef=plots)
+taxon_graph(genus.dfs$all,taxon="Faecalibacterium",savef=plots)
 
 ####
 dim(phylla.raw)
@@ -191,16 +210,34 @@ library(MASS)
 outl <- outliers(df.list)
 outliers <- outl$outliers
 cp.xgo <- outl$cp.xgo
-exc <- cp.xgo[cp.xgo$mahaDist>outliers$limit,]
+exc <- cp.xgo[cp.xgo$mahaDist>outliers$limit,] 
 avec.e <- c((ncol(exc)-6):ncol(exc))
-cp.d2 <- exc[,-avec.e]
+cp.d2 <- exc[,-avec.e]            ## no outliers - filtered
 iso <- cenLR(cp.d2)
 
 
 cp <- fillzeros(df.list$all,output="count",method="SQ")
+
 avec <- c((ncol(cp)-5):ncol(cp))
-cp.d <- cp[,-avec]
-cp.dx <- df.list$all[,-avec]
+cp.d <- cp[,-avec]               # all nozeros
+cp.dx <- df.list$all[,-avec]     # all raw
+
+cp.dx <- cp 
+cp.dx$H <- diversity(cp.d,index="shannon")
+
+ggplot(cp.dx[!is.na(cp.dx$gender),],aes(x=age,y=H,col=age.group))+#geom_point()+
+  geom_jitter(position=position_jitter(width=.2), size=1)+
+  xlab("Individuals age")+ylab("Alpha diversity (Shannon entropy)")+
+  scale_fill_brewer(name="Age groups",palette="Set2")+
+  scale_colour_hue(name="Age group",l=50)+
+  stat_smooth(aes(x=age,y=H,group=gender),method="lm")+facet_grid(.~gender,margins=TRUE)+
+  theme(axis.text.x  = element_text(angle=90, vjust=0.5, size=8),
+        panel.grid.minor=element_blank(),panel.grid.major=element_blank(),
+        legend.position="bottom",legend.box="horizontal",
+        legend.text = element_text(size=10),
+        legend.title = element_text(size=12, face="bold"),
+        plot.title = element_text(lineheight=.8, face="bold"))
+ggsave(paste(savef,'diversity_shannon.qc.pdf',sep=""),width=12, height=8)
 
 ### Ordination Analysis 
 vare.dis <- vegdist(iso)
@@ -244,7 +281,13 @@ vare.cca <- cca(cp.dx~age,cp)
 
 
 
-H <- diversity(cp.d)          # Shannon index
+H <- diversity(cp.d,index="shannon")          # Shannon index
+invS <- diversity(cp.d,index="invsimpson")          # Shannon index
+head(cp)
+
+divs
+
+
 J <- H/log(specnumber(cp.d))  # Pielou's eveness
 k <- sample(nrow(cp.d))
 R <- renyi(cp.d[k,])
