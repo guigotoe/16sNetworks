@@ -465,10 +465,10 @@ taxon_graph <- function(df,taxon,savef=NULL,method="SQ",ids=F){
   plot(gm,title="All",savef)
 }
 
-#df <- family.dfs$all
+#df <- phylla.dfs$all
 #title <- "Males"
 #limit=0.06
-#taxlevel="Family"
+#taxlevel="Plhylla"
 #method="SQ"
 #savef=plots
 #ids=F
@@ -476,15 +476,17 @@ taxon_graph <- function(df,taxon,savef=NULL,method="SQ",ids=F){
 
 tax_graph <- function(df,limit=0.06,taxlevel="Genus",savef=NULL,ids=F,method="SQ",taxon=NULL){
   gm <- fillzeros(df,output="prop",method=method)
+  if("Firmicutes"%in%colnames(gm)){gm$"taxlab" <- gm[,"Firmicutes"]  # phyllum reference to graph order
+  }else gm$"taxlab" <- rep(1,NROW(gm))
   colnames(gm)[which(names(gm) == "gut")] <- "RC9_gut_group"
   colnames(gm)[which(names(gm) == "Incertae")] <- "Incertae_Sedis"
-  gm_m <- melt(gm,id.vars=c("id","gender","age","agex","age.group","age.mean"))
+  gm_m <- melt(gm,id.vars=c("id","gender","age","agex","age.group","age.mean","taxlab"))
   ranks <- unlist(lapply(gm_m$"age", function(x) getrank(x)))
   taxa <- unlist(apply(gm_m,1, function(x) if(as.numeric(x["value"])>limit){(x["variable"])}else{"Others"}))
   gm_m$"ranks" <- as.factor(ranks)
   gm_m$"taxa" <- as.factor(taxa) 
   gmx <- within(gm_m,position <- factor(age,levels=names(sort(table(age)))))
-  gmx2 <- aggregate(value ~ id+taxa+age+agex+position+ranks+age.group+age.mean+gender,data=gmx,FUN=sum) # Because some taxa now are xOthers so we need to summ their values
+  gmx2 <- aggregate(value ~ id+taxa+age+agex+position+ranks+age.group+age.mean+gender+taxlab,data=gmx,FUN=sum) # Because some taxa now are xOthers so we need to summ their values
   
   ## before plot we need to order the taxa levels according their values of abundance and prevalence in individuals
   taxorder <- data.frame(taxa=levels(gmx2$taxa),rate=rep(0,length(levels(gmx2$taxa))))
@@ -500,15 +502,22 @@ tax_graph <- function(df,limit=0.06,taxlevel="Genus",savef=NULL,ids=F,method="SQ
 
   ## placing the colors to the taxas
   colourCount = length(levels(gmx2$taxa))
-  if (colourCount <= 10) {palette <- c(colorRampPalette(brewer.pal(8, "Set1"))(colourCount-1),"#3D3D3D")
-  }else if (colourCount <= 19) {palette <- c(colorRampPalette(brewer.pal(8, "Set1"))(9),
-                                             colorRampPalette(brewer.pal(8, "Accent"))(colourCount-10),"#3D3D3D")
-  }else palette <- c(colorRampPalette(brewer.pal(8, "Set1"))(9),colorRampPalette(brewer.pal(8, "Set3"))(9),
+  base <- colorRampPalette(brewer.pal(8, "Set1"))(colourCount-1)
+  base <- base[c(1,3,2,c(4:length(base)))]
+  base2 <- colorRampPalette(brewer.pal(8, "Set1"))(9)
+  base2 <- base[c(1,3,2,c(4:length(base)))] 
+  if (colourCount <= 10) {palette <- c(base,"#3D3D3D")
+  }else if (colourCount <= 19) {palette <- c(base2,colorRampPalette(brewer.pal(8, "Accent"))(colourCount-10),"#3D3D3D")
+  }else palette <- c(base2,colorRampPalette(brewer.pal(8, "Set3"))(9),
                      colorRampPalette(brewer.pal(8, "Accent"))(colourCount-19),"#3D3D3D")
-  
+  #cat(taxlevel)
+  if(taxlevel=="Plhylla"){
+    gm$ratioFB <- unlist(apply(gm,1,function(x) round(as.numeric(x["Firmicutes"])/as.numeric(x["Bacteroidetes"]),2)))
+    cat(aggregate(gm[,"ratioFB"], list(gm$age.group), mean))
+  }
   
   plot <- function(gm.g,title,taxlevel,palette,savef=NULL,ids=F){
-    x_labels <- gm[,c("agex","age","id")][order(gm[,c("agex","age","id")][,"agex"]),]
+    x_labels <- gm[,c("agex","age","id","taxlab")][order(gm[,c("agex","age","id","taxlab")][,"agex"]),]
     if (ids==T){ 
       x_lab <- unlist(apply(x_labels,1,function(x) paste(x[3],x[2],sep="_")))
       idslab <- '_ids'
@@ -524,7 +533,7 @@ tax_graph <- function(df,limit=0.06,taxlevel="Genus",savef=NULL,ids=F,method="SQ
     }else palette.g <- palette
     
     ggplot(gm.g, aes(x=as.factor(agex),y=value,fill=taxa))+
-      geom_bar(stat="identity",colour="black")+
+      geom_bar(stat="identity",width=1)+
       scale_fill_manual(name=taxlevel,values=palette.g) + #limits=c(levels(gmx2[1]),levels(gmx2[length(levels(gmx2))]))
       scale_x_discrete("Age",labels=as.character(x_lab))+ylab("Proportion")+
       guides(fill=guide_legend(ncol=6,keywidth=1, keyheight=1))+
@@ -548,6 +557,32 @@ tax_graph <- function(df,limit=0.06,taxlevel="Genus",savef=NULL,ids=F,method="SQ
             legend.title = element_text(size=12, face="bold"),
             plot.title = element_text(lineheight=.8, face="bold"))
     if(!is.null(savef)) ggsave(paste(savef,title,'_',taxlevel,idslab,'_boxplot.pdf',sep=""),width=12, height=8)
+    
+    if(title=="All"){
+      phylabs <- x_labels[order(x_labels[,"taxlab"]),]
+      x_lab <- phylabs$age
+
+      # for comparisson effects with paper Claesson 2011
+      x <- levels(as.factor(gm.g$taxlab))
+      y <- levels(as.factor(gm.g$taxa))
+      gm.g$taxlab <- factor(gm.g$taxlab,levels=sort(x))    
+      gm.g$taxa <- factor(gm.g$taxa,levels=y[c(2,1,c(3:length(y)))])
+      ###
+      
+      ggplot(gm.g, aes(x=as.factor(taxlab),y=value,fill=taxa))+
+        geom_bar(stat="identity",width=1)+
+        scale_fill_manual(name=taxlevel,values=palette) + #limits=c(levels(gmx2[1]),levels(gmx2[length(levels(gmx2))]))
+        scale_x_discrete("Age",labels=as.character(x_lab))+ylab("Proportion")+
+        guides(fill=guide_legend(ncol=6,keywidth=1, keyheight=1))+
+        ggtitle(title)+#facet_wrap(~ age+facet_wrap(~ taxa))+
+        theme(axis.text.x  = element_text(angle=90, vjust=0.5, size=8),
+              panel.grid.minor=element_blank(),panel.grid.major=element_blank(),
+              legend.position="bottom",legend.box="horizontal",
+              legend.text = element_text(size=10),
+              legend.title = element_text(size=12, face="bold"),
+              plot.title = element_text(lineheight=.8, face="bold"))
+      if(!is.null(savef)) ggsave(paste(savef,title,'_',taxlevel,idslab,'_boxplot_2ClaessonComp.pdf',sep=""),width=12, height=8)
+    }
   }
   
   ## Ploting by genders

@@ -11,14 +11,14 @@
 ####################################################
 
 #* requirements *#
-library(ggplot2)
-library(ggrepel)
-library(reshape2)
-library(scales)
-library(vegan)
-library(ade4)
-library(RColorBrewer) 
-library(dplyr)
+#library(ggplot2)
+#library(ggrepel)
+#library(reshape2)
+#library(scales)
+#library(vegan)
+#library(ade4)
+#library(RColorBrewer) 
+#library(dplyr)
 
 source("/home/torres/Documents/Projects/Metagenome/bin/rscripts/16sFunctions.R")
 
@@ -103,7 +103,7 @@ raw_counts <- add.GenderAge(counts[,2:3],design,colname="Group") # retrieve ID,G
 raw_counts$numOtus <- NULL
 raw_counts <- merge(raw_counts,counts,by="Group",all.x=T)
 
-min_bin_len <- otu.filtering(taxonomy,qval=0.85,nval=100,savef=plots) ## for more info check the function... update for plots
+min_bin_len <- otu.filtering(taxonomy,qval=0.9,nval=100,savef=plots) ## for more info check the function... update for plots
 
 ##################################
 ## *  New files from filter  * ##
@@ -187,7 +187,7 @@ tax_graph(genus.dfs$all,taxlevel="Genus",savef=plots,ids=F)
 ## by taxon ##
 taxon_graph(genus.dfs$all,taxon="Ruminococcus",savef=plots)
 taxon_graph(genus.dfs$all,taxon="Faecalibacterium",savef=plots)
-
+taxon_graph(genus.dfs$all,taxon="Bifidobacterium",savef=plots)
 ####
 dim(phylla.raw)
 dim(family.raw)

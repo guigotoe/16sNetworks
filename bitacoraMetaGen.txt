@@ -1,0 +1,27 @@
+
+/home/sukmb347/sukmb347/Metagenome/rawdata/Metagenome/last9/FF_Aging-Foxo-Microbiomes-LLI_1
+
+/home/sukmb347/sukmb347/Metagenome/rawdata/Metagenome/FF_Aging-Foxo-Microbiomes-LLI_1
+
+getFiles.py /home/sukmb347/sukmb347/Metagenome/rawdata/Metagenome/last9/FF_Aging-Foxo-Microbiomes-LLI_1,/home/sukmb347/sukmb347/Metagenome/rawdata/Metagenome/FF_Aging-Foxo-Microbiomes-LLI_1
+
+cat gzfile.txt | xargs -I{} -d"\n" gunzip -k -f {}
+
+mkdir RawQual
+
+*Folder [../RawQual] 
+
+  awk '{print $2"\n"$3}' ../fqfiles.txt > rawfq_list.txt
+
+  cat rawfq_list.txt | xargs -I{} -d"\n" fastqc -o ./ -q {}
+
+
+python ~/Documents/Projects/Metagenome/bin/qc_trimmomatic.py fqfiles.txt NexteraPE-PE.fa
+
+
+
+Preparing ribopicker:
+
+find . -type f | sed "s#^.#$(pwd)#" | grep '.gbk$' > gbk_files.txt
+
+perl -e 'foreach(16,23,5){print STDERR `bwa64rp index -p ncbibact 0160404$_\S ncbibact20160404$_\S.fasta`;}'
