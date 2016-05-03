@@ -229,7 +229,7 @@ ggplot(cp.dx[!is.na(cp.dx$gender),],aes(x=age,y=H,col=age.group))+#geom_point()+
   geom_jitter(position=position_jitter(width=.2), size=1)+
   xlab("Individuals age")+ylab("Alpha diversity (Shannon entropy)")+
   scale_fill_brewer(name="Age groups",palette="Set2")+
-  scale_colour_hue(name="Age group",l=50)+
+  scale_colour_brewer(name="Age group",palette="Set2")+
   stat_smooth(aes(x=age,y=H,group=gender),method="lm")+facet_grid(.~gender,margins=TRUE)+
   theme(axis.text.x  = element_text(angle=90, vjust=0.5, size=8),
         panel.grid.minor=element_blank(),panel.grid.major=element_blank(),

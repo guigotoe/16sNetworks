@@ -465,13 +465,13 @@ taxon_graph <- function(df,taxon,savef=NULL,method="SQ",ids=F){
   plot(gm,title="All",savef)
 }
 
-#df <- phylla.dfs$all
-#title <- "Males"
-#limit=0.06
-#taxlevel="Plhylla"
-#method="SQ"
-#savef=plots
-#ids=F
+df <- phylla.dfs$all
+title <- "Males"
+limit=0.06
+taxlevel="Plhylla"
+method="SQ"
+savef=plots
+ids=F
 #output="prop"
 
 tax_graph <- function(df,limit=0.06,taxlevel="Genus",savef=NULL,ids=F,method="SQ",taxon=NULL){
@@ -513,7 +513,7 @@ tax_graph <- function(df,limit=0.06,taxlevel="Genus",savef=NULL,ids=F,method="SQ
   #cat(taxlevel)
   if(taxlevel=="Plhylla"){
     gm$ratioFB <- unlist(apply(gm,1,function(x) round(as.numeric(x["Firmicutes"])/as.numeric(x["Bacteroidetes"]),2)))
-    cat(aggregate(gm[,"ratioFB"], list(gm$age.group), mean))
+    print(aggregate(gm[,"ratioFB"], list(gm$age.group), mean))
   }
   
   plot <- function(gm.g,title,taxlevel,palette,savef=NULL,ids=F){
@@ -558,15 +558,17 @@ tax_graph <- function(df,limit=0.06,taxlevel="Genus",savef=NULL,ids=F,method="SQ
             plot.title = element_text(lineheight=.8, face="bold"))
     if(!is.null(savef)) ggsave(paste(savef,title,'_',taxlevel,idslab,'_boxplot.pdf',sep=""),width=12, height=8)
     
-    if(title=="All"){
+    if(title=="All" & taxlevel=="Plhylla"){
       phylabs <- x_labels[order(x_labels[,"taxlab"]),]
       x_lab <- phylabs$age
 
       # for comparisson effects with paper Claesson 2011
-      x <- levels(as.factor(gm.g$taxlab))
-      y <- levels(as.factor(gm.g$taxa))
-      gm.g$taxlab <- factor(gm.g$taxlab,levels=sort(x))    
-      gm.g$taxa <- factor(gm.g$taxa,levels=y[c(2,1,c(3:length(y)))])
+      #x <- levels(as.factor(gm.g$taxlab))
+      #y <- levels(as.factor(gm.g$taxa))
+      #gm.g$taxlab <- factor(gm.g$taxlab,levels=sort(x,decreasing = T))    
+      #gm.g$taxa <- factor(gm.g$taxa,levels=y[c(2,1,c(3:length(y)))])
+      #gm.g$taxa <- factor(gm.g$taxa,levels=y)
+      gm.g$taxlab <- factor(gm.g$taxlab,levels=sort(x))
       ###
       
       ggplot(gm.g, aes(x=as.factor(taxlab),y=value,fill=taxa))+
