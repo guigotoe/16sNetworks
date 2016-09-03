@@ -257,3 +257,100 @@ genus_graph(genus_female,"Females")
 ##colnames(sobs.df)[which(names(sobs.df) == "sample.name")] <- sample.name
 #length(x) = length(sobs.df$numsampled)
 #sobs.df <- cbind(sobs.df,x)
+
+
+
+################# networks ##########
+###############################################################
+### Analysis by Age groups
+
+df.g1 <- data[meta$age.group=="G1",]
+df.g2 <- data[meta$age.group=="G2",]
+df.g3 <- data[meta$age.group=="G3",]
+df.g4 <- data[meta$age.group=="G4",]
+df.f <- data[meta$Gender=="female",]
+df.f.g1 <- data[meta$Gender=="female"&meta$age.group=="G1",]
+df.f.g2 <- data[meta$Gender=="female"&meta$age.group=="G2",]
+df.f.g3 <- data[meta$Gender=="female"&meta$age.group=="G3",]
+df.f.g4 <- data[meta$Gender=="female"&meta$age.group=="G4",]
+df.m <- data[meta$Gender=="male",]
+df.m.g1 <- data[meta$Gender=="male"&meta$age.group=="G1",]
+df.m.g2 <- data[meta$Gender=="male"&meta$age.group=="G2",]
+df.m.g3 <- data[meta$Gender=="male"&meta$age.group=="G3",]
+df.m.g4 <- data[meta$Gender=="male"&meta$age.group=="G4",]
+
+df.g1.mc <- most_common(df.g1,p=60)
+df.f.g1.mc <- most_common(df.f.g1,p=60)
+df.m.g1.mc <- most_common(df.m.g1,p=60)
+
+se.mb.dfg1mc <- spiec.easi(df.g1.mc$data,method='mb',lambda.min.ratio=1e-2,nlambda=20,icov.select.params=list(rep.num=50))
+ig.mb.dfg1mc <- graph.adjacency(se.mb.dfg1mc$refit, mode='undirected')
+vsize.dfg1mc <- rowMeans(clr(df.g1.mc$data, 1))+6
+am.coord.dfg1mc <- layout.fruchterman.reingold(ig.mb.dfg1mc)
+
+se.mb.dffg1mc <- spiec.easi(df.f.g1.mc$data,method='mb',lambda.min.ratio=1e-2,nlambda=20,icov.select.params=list(rep.num=50))
+ig.mb.dffg1mc <- graph.adjacency(se.mb.dffg1mc$refit, mode='undirected')
+vsize.dffg1mc <- rowMeans(clr(df.f.g1.mc$data, 1))+6
+am.coord.dffg1mc <- layout.fruchterman.reingold(ig.mb.dffg1mc)
+
+se.mb.dfmg1mc <- spiec.easi(df.m.g1.mc$data,method='mb',lambda.min.ratio=1e-2,nlambda=20,icov.select.params=list(rep.num=50))
+ig.mb.dfmg1mc <- graph.adjacency(se.mb.dfmg1mc$refit, mode='undirected')
+vsize.dfmg1mc <- rowMeans(clr(df.g1.mc$data, 1))+6
+am.coord.dfmg1mc <- layout.fruchterman.reingold(ig.mb.dfmg1mc)
+
+
+par(mfrow=c(1,3))
+plot(ig.mb.dfg1mc, layout=am.coord.dfg1mc, vertex.size=vsize.dfg1mc, vertex.label=NA, main="MB-G1")
+plot(ig.mb.dffg1mc, layout=am.coord.dffg1mc, vertex.size=vsize.dffg1mc, vertex.label=NA, main="MB-G1.f")
+plot(ig.mb.dfmg1mc, layout=am.coord.dfmg1mc, vertex.size=vsize.dfmg1mc, vertex.label=NA, main="MB-G1.m")
+
+plot(ig.mb.dfg1mc, vertex.size=vsize, vertex.label=NA, main="MB")
+dd.mb <- degree.distribution(ig.mb.dfg1mc)
+
+plot(0:(length(dd.mb)-1), dd.mb, ylim=c(0,.35), type='b',col="red")#, 
+#ylab="Frequency", xlab="Degree", main="Degree Distributions")
+legend("topright", c("MB"), col=c( "red"), pch=1, lty=1)
+
+
+comdata <- most_common(rdata,p=30)
+densityplot(comdata$presence)
+densityplot(comdata$presence.keept)
+dim(comdata$data)
+
+#data("amgut1.filt")
+#head(amgut1.filt)
+#dim(amgut1.filt)
+#depths <- rowSums(amgut1.filt)
+
+comgut <- comdata$data
+depths.x <- rowSums(as.matrix(comgut))
+
+
+se.mb.gergut <- spiec.easi(comgut,method='mb',lambda.min.ratio=1e-2,nlambda=20,icov.select.params=list(rep.num=50))
+## Create igraph objects
+ig.mb <- graph.adjacency(se.mb.gergut$refit, mode='undirected')
+ig <- graph.adjacency(se.mb.gergut$refit, atrr="weight",mode='undirected')
+palf <- colorRampPalette(c("gold","darkorange"))
+heatmap(ig.mb[,17:1], Rowv = NA, Colv = NA, col = palf(100), 
+        scale="none", margins=c(10,10) )
+
+colnames(ig.mb) <- colnames(se.mb.gergut$data)
+
+## set size of vertex proportional to clr-mean
+vsize <- rowMeans(clr(comgut, 1))+6
+am.coord <- layout.fruchterman.reingold(ig.mb)
+#par(mfrow=c(1,3))
+plot(ig.mb, layout=am.coord, vertex.size=vsize, vertex.label=NA, main="MB")
+plot(ig.mb, vertex.size=vsize, vertex.label=NA, main="MB")
+dd.mb <- degree.distribution(ig.mb)
+
+plot(0:(length(dd.mb)-1), dd.mb, ylim=c(0,.35), type='b',col="red")#, 
+#ylab="Frequency", xlab="Degree", main="Degree Distributions")
+legend("topright", c("MB"), col=c( "red"), pch=1, lty=1)
+
+## threshold based on degree
+
+max(dd.mb)
+min(dd.mb)
+mean(dd.mb)
+

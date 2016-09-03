@@ -11,13 +11,21 @@
 ####################################################
 
 #* requirements *#
-library(ggplot2)
-library(ggrepel)
-library(reshape2)
-library(scales)
-library(vegan)
-library(ade4)
-library(RColorBrewer) 
+
+requirements <- c("devtools","ggplot2","ggrepel","reshape2","scales","vegan","ade4","RColorBrewer","plyr","zCompositions","NetIndices")
+has   <- requirements %in% rownames(installed.packages())
+if(any(!has)){
+  setRepositories(ind=1:10)
+  install.packages(requirements[!has])
+}
+lapply(requirements, require, character.only = TRUE)
+requirements <- c("SpiecEasi")
+has   <- requirements %in% rownames( installed.packages())
+if(any(!has)){
+  library(devtools)
+  install_github("zdk123/SpiecEasi")
+}
+lapply(requirements, require, character.only = TRUE)
 
 ## Gives count, mean, standard deviation, standard error of the mean, and confidence interval (default 95%).
 ##   data: a data frame.
@@ -27,7 +35,6 @@ library(RColorBrewer)
 ##   conf.interval: the percent range of the confidence interval (default is 95%)
 summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE,
                       conf.interval=.95, .drop=TRUE) {
-  library(plyr)
   
   # New version of length which can handle NA's: if na.rm==T, don't count them
   length2 <- function (x, na.rm=FALSE) {
@@ -417,7 +424,8 @@ fillzeros <- function(df,output="prop",method="SQ"){
   return(gm)
 }
 
-
+#df <- genus.dfs$all#,
+#taxon="Eubacterium"#,savef=plots)
 #taxon="Ruminococcus"
 
 taxon_graph <- function(df,taxon,savef=NULL,method="SQ",ids=F){
@@ -434,12 +442,12 @@ taxon_graph <- function(df,taxon,savef=NULL,method="SQ",ids=F){
       scale_fill_brewer(name="Age groups",palette="Set2") + #limits=c(levels(gmx2[1]),levels(gmx2[length(levels(gmx2))]))
       scale_x_discrete("Age",labels=as.character(x_lab))+ylab("Proportion")+
       ggtitle(paste(title,taxon,sep=" - "))+
-      theme(axis.text.x  = element_text(angle=90, vjust=0.5, size=8),
+      theme(axis.text.x  = element_text(angle=90, vjust=0.5, size=12),
         panel.grid.minor=element_blank(),panel.grid.major=element_blank(),
         legend.position="bottom",legend.box="horizontal",
-        legend.text = element_text(size=10),
-        legend.title = element_text(size=12, face="bold"),
-        plot.title = element_text(lineheight=.8, face="bold"))
+        legend.text = element_text(size=14),
+        legend.title = element_text(size=16, face="bold"),
+        plot.title = element_text(lineheight=.12, face="bold"))
     if(!is.null(savef)) ggsave(paste(savef,taxon,'_',title,idslab,'.pdf',sep=""),width=12, height=8)
     
     ggplot(gm.g,aes(x=as.factor(age.group),y=gm.g[,taxon],fill=age.group))+geom_boxplot()+
@@ -447,12 +455,12 @@ taxon_graph <- function(df,taxon,savef=NULL,method="SQ",ids=F){
       scale_fill_brewer(name="Age groups",palette="Set2") + #limits=c(levels(gmx2[1]),levels(gmx2[length(levels(gmx2))]))
       scale_x_discrete("")+ylab("Proportion")+
       ggtitle(paste(title,taxon,sep=" - "))+
-      theme(axis.text.x  = element_text(angle=90, vjust=0.5, size=8),
+      theme(axis.text.x  = element_text(angle=90, vjust=0.5, size=12),
             panel.grid.minor=element_blank(),panel.grid.major=element_blank(),
             legend.position="bottom",legend.box="horizontal",
-            legend.text = element_text(size=10),
-            legend.title = element_text(size=12, face="bold"),
-            plot.title = element_text(lineheight=.8, face="bold"))
+            legend.text = element_text(size=14),
+            legend.title = element_text(size=16, face="bold"),
+            plot.title = element_text(lineheight=.12, face="bold"))
     if(!is.null(savef)) ggsave(paste(savef,taxon,'_',title,idslab,'_boxplot.pdf',sep=""),width=12, height=8)
     }
   gm <- fillzeros(df,output="prop",method=method)
@@ -465,18 +473,18 @@ taxon_graph <- function(df,taxon,savef=NULL,method="SQ",ids=F){
   plot(gm,title="All",savef)
 }
 
-df <- phylla.dfs$all
-title <- "Males"
-limit=0.06
-taxlevel="Plhylla"
-method="SQ"
-savef=plots
-ids=F
+#df <- phylla.dfs$all
+#title <- "Males"
+#limit=0.06
+#taxlevel="Plhylla"
+#method="SQ"
+#savef=plots
+#ids=F
 #output="prop"
 
 tax_graph <- function(df,limit=0.06,taxlevel="Genus",savef=NULL,ids=F,method="SQ",taxon=NULL){
   gm <- fillzeros(df,output="prop",method=method)
-  if("Firmicutes"%in%colnames(gm)){gm$"taxlab" <- gm[,"Firmicutes"]  # phyllum reference to graph order
+  if("Bacteroidetes"%in%colnames(gm)){gm$"taxlab" <- gm[,"Firmicutes"]  # phyllum reference to graph order
   }else gm$"taxlab" <- rep(1,NROW(gm))
   colnames(gm)[which(names(gm) == "gut")] <- "RC9_gut_group"
   colnames(gm)[which(names(gm) == "Incertae")] <- "Incertae_Sedis"
@@ -510,10 +518,11 @@ tax_graph <- function(df,limit=0.06,taxlevel="Genus",savef=NULL,ids=F,method="SQ
   }else if (colourCount <= 19) {palette <- c(base2,colorRampPalette(brewer.pal(8, "Accent"))(colourCount-10),"#3D3D3D")
   }else palette <- c(base2,colorRampPalette(brewer.pal(8, "Set3"))(9),
                      colorRampPalette(brewer.pal(8, "Accent"))(colourCount-19),"#3D3D3D")
-  #cat(taxlevel)
-  if(taxlevel=="Plhylla"){
+
+  if(taxlevel=="Phylla"){
     gm$ratioFB <- unlist(apply(gm,1,function(x) round(as.numeric(x["Firmicutes"])/as.numeric(x["Bacteroidetes"]),2)))
     print(aggregate(gm[,"ratioFB"], list(gm$age.group), mean))
+    print(c(summary(as.numeric(gm[,"Firmicutes"])),summary(as.numeric(gm[,"Bacteroidetes"])),summary(as.numeric(gm[,"Proteobacteria"]))))
   }
   
   plot <- function(gm.g,title,taxlevel,palette,savef=NULL,ids=F){
@@ -538,27 +547,27 @@ tax_graph <- function(df,limit=0.06,taxlevel="Genus",savef=NULL,ids=F,method="SQ
       scale_x_discrete("Age",labels=as.character(x_lab))+ylab("Proportion")+
       guides(fill=guide_legend(ncol=6,keywidth=1, keyheight=1))+
       ggtitle(title)+#facet_wrap(~ age+facet_wrap(~ taxa))+
-      theme(axis.text.x  = element_text(angle=90, vjust=0.5, size=8),
+      theme(axis.text.x  = element_text(angle=90, vjust=0.5, size=12),
             panel.grid.minor=element_blank(),panel.grid.major=element_blank(),
             legend.position="bottom",legend.box="horizontal",
-            legend.text = element_text(size=10),
-            legend.title = element_text(size=12, face="bold"),
-            plot.title = element_text(lineheight=.8, face="bold"))
+            legend.text = element_text(size=14),
+            legend.title = element_text(size=16, face="bold"),
+            plot.title = element_text(lineheight=.12, face="bold"))
     if(!is.null(savef)) ggsave(paste(savef,title,'_',taxlevel,idslab,'.pdf',sep=""),width=12, height=8)
     
     ggplot(gm.g,aes(x=as.factor(age.group),y=value,fill=taxa))+geom_boxplot()+
       scale_fill_manual(name=taxlevel,values=palette.g) + #limits=c(levels(gmx2[1]),levels(gmx2[length(levels(gmx2))]))
       scale_x_discrete("")+ylab("Proportion")+
       ggtitle(paste(title,sep=""))+
-      theme(axis.text.x  = element_text(angle=90, vjust=0.5, size=8),
+      theme(axis.text.x  = element_text(angle=90, vjust=0.5, size=12),
             panel.grid.minor=element_blank(),panel.grid.major=element_blank(),
             legend.position="bottom",legend.box="horizontal",
-            legend.text = element_text(size=10),
-            legend.title = element_text(size=12, face="bold"),
-            plot.title = element_text(lineheight=.8, face="bold"))
+            legend.text = element_text(size=14),
+            legend.title = element_text(size=16, face="bold"),
+            plot.title = element_text(lineheight=.12, face="bold"))
     if(!is.null(savef)) ggsave(paste(savef,title,'_',taxlevel,idslab,'_boxplot.pdf',sep=""),width=12, height=8)
     
-    if(title=="All" & taxlevel=="Plhylla"){
+    if(title=="All" & taxlevel=="Phylla"){
       phylabs <- x_labels[order(x_labels[,"taxlab"]),]
       x_lab <- phylabs$age
 
@@ -577,12 +586,12 @@ tax_graph <- function(df,limit=0.06,taxlevel="Genus",savef=NULL,ids=F,method="SQ
         scale_x_discrete("Age",labels=as.character(x_lab))+ylab("Proportion")+
         guides(fill=guide_legend(ncol=6,keywidth=1, keyheight=1))+
         ggtitle(title)+#facet_wrap(~ age+facet_wrap(~ taxa))+
-        theme(axis.text.x  = element_text(angle=90, vjust=0.5, size=8),
+        theme(axis.text.x  = element_text(angle=90, vjust=0.5, size=12),
               panel.grid.minor=element_blank(),panel.grid.major=element_blank(),
               legend.position="bottom",legend.box="horizontal",
-              legend.text = element_text(size=10),
-              legend.title = element_text(size=12, face="bold"),
-              plot.title = element_text(lineheight=.8, face="bold"))
+              legend.text = element_text(size=14),
+              legend.title = element_text(size=16, face="bold"),
+              plot.title = element_text(lineheight=.12, face="bold"))
       if(!is.null(savef)) ggsave(paste(savef,title,'_',taxlevel,idslab,'_boxplot_2ClaessonComp.pdf',sep=""),width=12, height=8)
     }
   }
@@ -599,7 +608,7 @@ tax_graph <- function(df,limit=0.06,taxlevel="Genus",savef=NULL,ids=F,method="SQ
   plot(gmx2,title="All",taxlevel=taxlevel,palette=palette,savef=savef)
 }
 
-levels(as.factor(gmx2$age))
+#levels(as.factor(gmx2$age))
 
 
 change.name <- function(df){
@@ -658,6 +667,7 @@ cpanalysis <- function(df.list,taxlevel,savef=NULL,title="cpanalysis"){
     ylab("Robust Mahalanobis distance")+xlab("Samples")+
     geom_hline(yintercept=outliers$limit,linetype="dashed",color="red")
   
+  print(outliers)
   if(!is.null(savef)) ggsave(paste(savef,title,'_',taxlevel,'_outliers.pdf',sep=""),width=12, height=8)
   
   exc <- cp.xgo[cp.xgo$mahaDist>outliers$limit,]#5,]# df just outliers
@@ -755,6 +765,175 @@ cpanalysis <- function(df.list,taxlevel,savef=NULL,title="cpanalysis"){
   #grp<- cp.y$age.group
   #daf <- daFisher(y,grp=grp,method="robust")
 }
+
+#########################
+# Co-Ocurrence functions
+#########################
+
+
+#df <- add.GenderAge(df,design,colname="id")
+
+get.windows <- function(meta,data,window=10){
+  meta.x <- arrange(meta,Age)
+  #win <- NROW(meta.i)-(window-1)   # total windows = (N-(k-1)) 
+  tensor <- list()
+  for (i in 1:(NROW(meta)-window+1)){
+    sample <- meta.x[i:(i+window-1),]
+    tensor[[as.character(mean(sample$Age))]] <- data[row.names(data)%in%sample$id,]
+  }
+  return(tensor)
+}
+
+get.groups <- function(meta,data){
+  tensor <- list()
+  for (i in levels(as.factor(meta$age.group))){
+    sample <- subset(meta.f,meta.f$age.group==i)
+    tensor[[as.character(as.integer(mean(sample$Age)))]] <- data[row.names(data)%in%sample$id,]
+  }
+  return(tensor)
+}
+
+most_common <- function(df,p=15,mode=c("raw","log2","wlog2"),logt=3.5){
+  mode <- match.arg(mode)
+  presence <- c()
+  presence.x <- c()
+  lp <- c() # cero = log2(count)
+  wlp <- c() # weighted presence lp cero
+  #df <- rdata[1:(NROW(rdata)-3),]
+  df2 <- df
+  df3 <- df
+  df4 <- df
+  for (i in 1:length(colnames(df))){
+    id <- colnames(df[,i,drop=F])
+    ceros <- table(df[,i])[names(table(df[,i]))==0][[1]]
+    ratio <- 100*ceros/NROW(df)
+    presence <- c(presence,(100-ratio))
+    if(p>(100-ratio)){df2[,id] <- NULL}
+    else {presence.x <- c(presence.x,(100-ratio))}
+    lg <- log2(as.numeric(df[,i]))
+    ceros2 <- table(lg>3.5)[["FALSE"]]
+    ratio2 <- 100*ceros2/NROW(df)
+    lp <- c(lp,(100-ratio2))
+    if(p>(100-ratio2)) {df3[,id] <- NULL}
+    #if (length(table(lg>3.5))==2) {w <- mean(lg[lg>logt])}
+    #else {w <-1 }
+    w <- mean(lg)
+    r <- w*(100-ratio2)
+    if (is.na(r)) {r = (100-ratio2)}
+    wlp <- c(wlp,r)
+  }
+  wlp2 <- 100*wlp/max(wlp)
+  for (i in 1:length(wlp2)){
+    id <- colnames(df[,i,drop=F])
+    if(p> wlp2[i]) {df4[,id] <- NULL}
+  }
+  if (mode=="raw") {dfx <- df2;  p <- presence; p.x <- presence.x}
+  if (mode=="log2") {dfx <- df3; p <- lp;       p.x <- c()}
+  if (mode=="wlog2") {dfx <- df4;p <- wlp2;     p.x <- c()}
+  
+  idx <- sapply(dfx,is.factor)
+  dfx[idx] <- lapply(dfx[idx],function(x) as.numeric(as.character(x)))
+  return(list(df=as.matrix(dfx),presence=p,presence.keept=p.x))
+}
+
+net.mb <- function(tensor,taxclass.mc,netpar=F){
+  f=0
+  tensor.mb <- list()
+  for (i in names(tensor)){
+    a <- spiec.easi(tensor[[i]],method='mb',npn=TRUE,lambda.min.ratio=1e-2,nlambda=30,icov.select.params=list(rep.num=50))
+    b <- graph.adjacency(a$refit, mode='undirected')
+    c <- rowMeans(clr(tensor[[i]], 1))+6
+    d <- layout.fruchterman.reingold(b)
+    V(b)$phylla <- as.vector(unlist(unname(taxclass.mc["phylla",])))
+    V(b)$phycol <- brewer.pal(length(levels(as.factor(as.vector(unlist(unname(taxclass.mc["phylla",])))))), "Set1")
+    V(b)$genus <-as.vector(unlist(unname(taxclass.mc["genus",])))
+    V(b)$gencol <- colorRampPalette(brewer.pal(8, "Set1"))(length(levels(as.factor(as.vector(unlist(unname(taxclass.mc["genus",])))))))
+    V(b)$family <- as.vector(unlist(unname(taxclass.mc["family",])))
+    V(b)$famcol <- colorRampPalette(brewer.pal(8, "Set1"))(length(levels(as.factor(as.vector(unlist(unname(taxclass.mc["family",])))))))
+    V(b)$type <- "OTU"
+    
+    tensor.mb[[as.character(i)]][["se.mb"]] <- a
+    tensor.mb[[as.character(i)]][["igraph"]] <- b
+    tensor.mb[[as.character(i)]][["vsize"]] <- c
+    tensor.mb[[as.character(i)]][["coord"]] <- d
+    message("Calculating:")
+    message("aveshpath ...")
+    tensor.mb[[as.character(i)]][["net.aveshpath"]] <- igraph::average.path.length(b)
+    message("eigen vector centrality ...")
+    tensor.mb[[as.character(i)]][["net.evcent"]] <- igraph::evcent(b)$vector
+    message("hub score ...")
+    tensor.mb[[as.character(i)]][["hub_score"]] <- igraph::hub_score(b,weights=NA)$vector
+    message("authority score ...")
+    tensor.mb[[as.character(i)]][["authority_score"]] <- igraph::authority_score(b,weights=NA)$vector
+    #message("optimal community ...")
+    #V(b)$comm <- membership(optimal.community(b))
+    #message("vertex membership ...")
+    #V(b)$membership <- igraph::edge.betweenness.community(b)$membership
+    #message("flow betweenness ...")
+    #tensor.mb[[as.character(i)]][["flowbetween"]]     <- sna::flowbet(as.matrix(get.adjacency(b)))
+    #message("betweenness centralization ...")
+    #tensor.mb[[as.character(i)]][["betcentralization"]] <- centralization.betweenness(b)$centralization
+    #message("degree centralization ...")
+    #tensor.mb[[as.character(i)]][["degcentralization"]] <- centralization.degree(b, mode = "total")$centralization
+    message("global transitivity ...")
+    # Clustering coefficient is the proportion of
+    # a node that can be reached by other neighbors
+    # in igraph this property is apparently called "transitivity"
+    tensor.mb[[as.character(i)]][["net.globaltransitivity"]] <- igraph::transitivity(b)
+    # gives the clustering coefficient of the whole network
+    message("local transitivity ...")
+    tensor.mb[[as.character(i)]][["net.localtransitivity"]] <- igraph::transitivity(b,type="local")
+    # gives the clustering coefficient of each node
+    # Betweenness is the number of shortest paths between two nodes that go through each node of interest
+    message("betweeness ...")
+    tensor.mb[[as.character(i)]][["net.betweeness"]] <- igraph::betweenness(b,v=V(b))
+    message("edge betweeness ...")
+    tensor.mb[[as.character(i)]][["net.edgebetweeness"]] <- igraph::edge.betweenness(b,e=E(b))
+    message("closeness ...")
+    # Closeness refers to how connected a node is to its neighbors
+    tensor.mb[[as.character(i)]][["net.closeness"]] <- igraph::closeness(b,vids=V(b))
+    # Clustering coefficient, betweenness, and closeness
+    # all describe the small world properties of the network.
+    # A network with small world properties is one in which
+    # it takes a relatively short path to get from one node to the next
+    # (e.g., six degrees of separation)
+    
+    if (netpar == T){
+      V(b)$degree <- igraph::degree(b)
+      V(b)$centcloseness <- centralization.closeness(b)$res
+      V(b)$centbetweenness <- centralization.betweenness(b)$res
+      # The function output consists of 10 network properties.
+      tensor.mb[[as.character(i)]][["net.properties"]] <- GenInd(get.adjacency(b,sparse=F))
+      # Connectance is measured as L/(N*(N-1)) where L is links, and N is nodes
+      # Connectance can also be calculated as L/(N^2)
+      
+      # The degree of a node refers to the number of links associated with a node.
+      # Degree can be measured as the links going in ("in degree"), out ("out degree"), or both.
+      # The degree() function takes a graph input and gives the degree of specified nodes.
+      # With the argument "v=V(graph)" you tell the function to give the degree of all nodes in the graph,
+      # while the "mode" argument specifies in, out, or both.
+      tensor.mb[[as.character(i)]][["net.degree"]] <- igraph::degree(b,v=V(b),mode="all")
+      # Degree distribution is the cumulative frequency of nodes with a given degree
+      # this, like degree() can be specified as "in", "out", or "all"
+      tensor.mb[[as.character(i)]][["net.degdist"]] <- degree.distribution(b,cumulative=T,mode="all")
+      # Using the power.law.fit() function I can fit a power law to the degree distribution
+      #****#tensor.mb[[as.character(i)]][["net.powerlaw"]] <- power.law.fit(tensor.mb[[as.character(i)]][["net.degdist"]])
+      # The output of the power.law.fit() function tells me what the exponent of the power law is ($alpha)
+      # and the log-likelihood of the parameters used to fit the power law distribution ($logLik)
+      # Also, it performs a Kolmogov-Smirnov test to test whether the given degree distribution could have
+      # been drawn from the fitted power law distribution.
+      # The function thus gives me the test statistic ($KS.stat) and p-vaule ($KS.p) for that test
+      # Then I can plot the degree distribution
+    }
+    
+    
+    f = f+1
+    x = as.integer(100*f/length(tensor))
+    message(x,"% completed")
+  }
+  return(tensor.mb)
+}
+
 
 #########
 #* END *#

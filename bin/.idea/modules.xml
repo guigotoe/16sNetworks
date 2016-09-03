@@ -4,6 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/../Madrid/bin/.idea/16sNetworks.iml" filepath="$PROJECT_DIR$/../Madrid/bin/.idea/16sNetworks.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../ExomeChip/.idea/ExomeChip.iml" filepath="$PROJECT_DIR$/../../ExomeChip/.idea/ExomeChip.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../Mangrove/.idea/Mangrove.iml" filepath="$PROJECT_DIR$/../../Mangrove/.idea/Mangrove.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/Metagenome.iml" filepath="$PROJECT_DIR$/.idea/Metagenome.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../javiArray/.idea/javiArray.iml" filepath="$PROJECT_DIR$/../../javiArray/.idea/javiArray.iml" />
     </modules>

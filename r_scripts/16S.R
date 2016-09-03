@@ -11,14 +11,15 @@
 ####################################################
 
 #* requirements *#
-#library(ggplot2)
+library(ggplot2)
 #library(ggrepel)
-#library(reshape2)
+library(reshape2)
 #library(scales)
 #library(vegan)
 #library(ade4)
-#library(RColorBrewer) 
-#library(dplyr)
+library(RColorBrewer) 
+library(dplyr)
+library(igraph)
 
 source("/home/torres/Documents/Projects/Metagenome/bin/rscripts/16sFunctions.R")
 
@@ -28,7 +29,7 @@ setwd("/home/torres/Documents/Projects/Metagenome/results/plotsMothur/03.2016/")
 files.path = '/home/torres/ikmb_storage/Metagenome/16s/03.2016/'#
 send.to <- "/home/torres/Documents/Projects/Metagenome/MothurResults/03.2016/"
 plots <- "/home/torres/Documents/Projects/Metagenome/results/plotsMothur/03.2016/"
-
+design <- read.table(paste(files.path,'design.txt',sep=''),header=T,sep="\t",row.names=1,blank.lines.skip=TRUE,na.strings="NA")
 
 
 
@@ -93,7 +94,7 @@ div.graphs(divs,savef=plots)
 
 source("/home/torres/Documents/Projects/Metagenome/bin/rscripts/16sFunctions.R")
 taxonomy <- read.table(paste(files.path,'16s.an.cons.taxonomy',sep=''),header=T,sep="\t")
-counts <- read.table(paste(files.path,'16s.an.shared',sep=''),header=T,sep="\t")
+counts <- read.table(paste(files.path,'16s.an.shared',sep=''),header=T,sep="\t",skipNul=F)
 counts$X <- NULL
 idxs <- read.table(paste(files.path,'16s.an.groups.summary',sep=''),header=T,sep="\t") # importing summary file with all indexes
 design <- read.table(paste(files.path,'design.txt',sep=''),header=T,sep="\t",row.names=1)
@@ -126,10 +127,15 @@ rdata["phylla",] <- unlist(lapply(colnames(rdata),function(x) taxa(x,2)))
 rdata["genus",] <- unlist(lapply(colnames(rdata),function(x) taxa(x,6)))
 rdata["family",] <- unlist(lapply(colnames(rdata),function(x) taxa(x,5)))
 
-write.table(rdata,paste(plots,"rdata",sep=""),sep="\t",col.names=T,row.names=T)
+write.table(rdata,paste(plots,"rdata",sep=""),sep="\t",col.names=T,row.names=T) ## Exporting the New data.. filtered
+
 rdata[is.na(rdata)] <- "unclassified"
 #rdata[rdata=="Unknown"] <- "unclassified"
 write.table(rdata,paste(plots,"rdata_un",sep=""),sep="\t",col.names=T,row.names=T)
+
+##
+rdata <- read.table(paste(plots,'rdata',sep=''),header=T,sep="\t") 
+##
 
 phylla.raw <- rdata
 genus.raw <- rdata
@@ -188,16 +194,129 @@ tax_graph(genus.dfs$all,taxlevel="Genus",savef=plots,ids=F)
 taxon_graph(genus.dfs$all,taxon="Ruminococcus",savef=plots)
 taxon_graph(genus.dfs$all,taxon="Faecalibacterium",savef=plots)
 taxon_graph(genus.dfs$all,taxon="Bifidobacterium",savef=plots)
+taxon_graph(genus.dfs$all,taxon="Lactobacillus",savef=plots)
+taxon_graph(genus.dfs$all,taxon="Clostridium",savef=plots)
+taxon_graph(genus.dfs$all,taxon="Akkermansia",savef=plots)
 ####
 dim(phylla.raw)
 dim(family.raw)
 dim(genus.raw)
 
+
+#####################################################################################
+# * Co-Ocurrence analysis with SPIEC-EASI * ##
+#####################################################################################
+
+rdata <- read.table(paste(plots,'rdata',sep=''),header=T,sep="\t") 
+source("/home/torres/Documents/Projects/Metagenome/bin/rscripts/16sFunctions.R")
+
+data <- rdata[1:(NROW(rdata)-3),]
+taxclass <- rdata[(NROW(rdata)-2):NROW(rdata),]
+meta <- data.frame(id=rownames(data),row.names=NULL)
+meta <- add.GenderAge(meta,design,colname="id")
+
+#write.table(meta,file=paste(files.path,"metadata.txt",sep=''),sep="\t")
+#
+
+################################
+### Getting common OTUs
+
+### Tests to define better approach ###
+w <-  most_common(df=data,p=60,mode="raw")
+l <-  most_common(df=data,p=30,mode="log2")
+wl <-  most_common(df=data,p=20,mode="wlog2")
+dim(w$df)
+dim(l$df)
+dim(wl$df)
+length(intersect(colnames(w$df),colnames(l$df)))
+length(intersect(colnames(w$df),colnames(wl$df)))
+length(intersect(colnames(l$df),colnames(wl$df)))
+
+plot(w$presence)
+plot(l$presence)
+plot(wl$presence)
+
+###### End Tests
+
+df.mc <-  most_common(data,p=20,mode="wlog2") # 85 common OTUs --> good number for the algorithm according paper * less is better
+df.f <- data[meta$Gender=="female",]
+df.m <- data[meta$Gender=="male",]
+df.f.mc <- most_common(df.f,p=20,mode="wlog2")
+df.m.mc <- most_common(df.m,p=20,mode="wlog2")
+dim(df.mc$df)
+dim(df.f.mc$df)
+dim(df.m.mc$df)
+## how many OTUs are shared by men and wemen
+length(intersect(colnames(df.m.mc$df),colnames(df.f.mc$df)))
+length(intersect(colnames(df.mc$df),colnames(df.f.mc$df)))
+length(intersect(colnames(df.m.mc$df),colnames(df.mc$df)))
+
+### we are going to use the union OTU-sets of male and female
+length(union(colnames(df.m.mc$df),colnames(df.f.mc$df)))
+df.mcu <- data[,union(colnames(df.m.mc$df),colnames(df.f.mc$df))]
+idx <- sapply(df.mcu,is.factor)
+df.mcu[idx] <- lapply(df.mcu[idx],function(x) as.numeric(as.character(x)))
+df.mcu <- as.matrix(df.mcu)
+taxclass.mcu <- taxclass[,union(colnames(df.m.mc$df),colnames(df.f.mc$df))]
+
+
+
+
+##############################################################
+##### Analysis by sliding window..
+## Using general common OTUs:
+
+source("/home/torres/Documents/Projects/Metagenome/bin/rscripts/16sFunctions.R")
+
+meta.f <- meta[meta$Gender=="female",]
+tensor.f <- get.windows(meta=meta.f,data=df.mcu,window=40)
+fnet <- net.mb(tensor.f,taxclass.mcu)
+
+saveRDS(fnet,paste(send.to,'fnet_wl20_40win.mb.rds',sep=''))
+
+meta.m <- meta[meta$Gender=="male",]
+tensor.m <- get.windows(meta=meta.m,data=df.mcu,window=40)
+mnet <- net.mb(tensor.m,taxclass.mcu)
+saveRDS(mnet,paste(send.to,'mnet_wl20_40win.mb.rds',sep=''))
+
+## all ##
+
+tensor.all <- get.windows(meta=meta,data=df.mcu,window=40)
+allnet <- net.mb(tensor.all,taxclass.mcu)
+saveRDS(allnet,paste(send.to,'allnet_wl20_40win.mb.rds',sep=''))
+
+##############################################################
+##### Analysis by Groups (G1,G2,G3,G4)..
+## Using general common OTUs:
+
+source("/home/torres/Documents/Projects/Metagenome/bin/rscripts/16sFunctions.R")
+
+meta.f <- meta[meta$Gender=="female",]
+gtensor.f <- get.groups(meta=meta.f,data=df.mcu)
+meta.m <- meta[meta$Gender=="male",]
+gtensor.m <- get.groups(meta=meta.m,data=df.mcu)
+
+fnetg <- net.mb(gtensor.f,taxclass.mcu)
+saveRDS(fnetg,paste(send.to,'fnet_groups.mb.rds',sep=''))
+
+mnetg <- net.mb(gtensor.m,taxclass.mcu)
+saveRDS(mnetg,paste(send.to,'mnet_groups.mb.rds',sep=''))
+
+fullnet <- net.mb(df.mcu,taxclass.mcu)
+saveRDS(mnetg,paste(send.to,'fullnet.mb.rds',sep=''))
+
+
+
+
+
+
+
 #####################################################################################
 # * Compositional Data treatment; Outliers, strong PCA and Discriminant analysis * ##
 #####################################################################################
 df.list <- genus.dfs
-taxlevel <- "Genus"
+df.list <- phylla.dfs
+taxlevel <- "Phylla"
 cpanalysis(df.list,taxlevel,savef=plots)
 
 
@@ -226,16 +345,17 @@ cp.dx <- cp
 cp.dx$H <- diversity(cp.d,index="shannon")
 
 ggplot(cp.dx[!is.na(cp.dx$gender),],aes(x=age,y=H,col=age.group))+#geom_point()+
-  geom_jitter(position=position_jitter(width=.2), size=1)+
+  geom_jitter(position=position_jitter(width=.2), size=2)+
   xlab("Individuals age")+ylab("Alpha diversity (Shannon entropy)")+
   scale_fill_brewer(name="Age groups",palette="Set2")+
   scale_colour_brewer(name="Age group",palette="Set2")+
+  ggtitle("Alpha diversity")+
   stat_smooth(aes(x=age,y=H,group=gender),method="lm")+facet_grid(.~gender,margins=TRUE)+
-  theme(axis.text.x  = element_text(angle=90, vjust=0.5, size=8),
+  theme(axis.text.x  = element_text(angle=90, vjust=0.5, size=12),
         panel.grid.minor=element_blank(),panel.grid.major=element_blank(),
         legend.position="bottom",legend.box="horizontal",
-        legend.text = element_text(size=10),
-        legend.title = element_text(size=12, face="bold"),
+        legend.text = element_text(size=14),
+        legend.title = element_text(size=16, face="bold"),
         plot.title = element_text(lineheight=.8, face="bold"))
 ggsave(paste(savef,'diversity_shannon.qc.pdf',sep=""),width=12, height=8)
 
